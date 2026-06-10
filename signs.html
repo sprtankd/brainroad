@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign Master — BrainRoad</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23FFCD00' stroke='%23E0162B' stroke-width='9'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Spline+Sans+Mono:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#060B16;--panel:#0E1830;--line:rgba(170,200,255,.12);--ink:#EAF2FF;--dim:#8FA3C4;--faint:#5A6C8C;
+--gul:#FFCD00;--rod:#E8344A;--gron:#2BE8A4;--bla:#3D8BFD}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(1000px 700px at 70% -10%,#101E3D 0%,var(--bg0) 55%) fixed,var(--bg0);
+color:var(--ink);font-family:'Familjen Grotesk',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+body::after{content:"";position:fixed;inset:0;z-index:90;pointer-events:none;opacity:.05;
+background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.7'/></svg>")}
+.aurora{position:fixed;border-radius:50%;filter:blur(95px);pointer-events:none;z-index:0;mix-blend-mode:screen}
+.a1{width:55vw;height:40vh;background:radial-gradient(ellipse,rgba(255,205,0,.10),transparent 70%);top:-10vh;left:-8vw;animation:dr 26s ease-in-out infinite alternate}
+.a2{width:48vw;height:38vh;background:radial-gradient(ellipse,rgba(61,139,253,.18),transparent 70%);bottom:-12vh;right:-10vw;animation:dr 32s ease-in-out infinite alternate-reverse}
+@keyframes dr{to{transform:translate(8vw,6vh) scale(1.15)}}
+#wrap{position:relative;z-index:2;max-width:860px;margin:0 auto;padding:18px clamp(14px,4vw,32px) 60px;min-height:100vh;display:flex;flex-direction:column}
+.top{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px}
+.top a{color:var(--dim);text-decoration:none;font-size:14px}.top a:hover{color:var(--ink)}
+.hudr{display:flex;gap:18px;align-items:center;font-family:'Spline Sans Mono',monospace;font-size:13px;color:var(--dim)}
+.hudr b{color:var(--gul);font-size:19px;font-weight:600}
+#streakChip{background:rgba(255,205,0,.1);border:1px solid rgba(255,205,0,.35);color:var(--gul);border-radius:99px;padding:4px 13px;font-size:12px;display:none}
+#prog{height:5px;border-radius:3px;background:#101A30;overflow:hidden;margin:4px 0 8px}
+#progFill{height:100%;width:0;background:linear-gradient(90deg,var(--bla),var(--gul));border-radius:3px;transition:width .4s}
+.qcount{font-family:'Spline Sans Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.28em;text-align:center;margin:8px 0 2px}
+h2.q{text-align:center;font-size:clamp(21px,3.4vw,29px);letter-spacing:-.01em;margin:2px 0 4px}
+#stage{display:flex;align-items:center;justify-content:center;height:clamp(190px,30vh,265px);position:relative}
+#signBox{width:clamp(150px,24vh,210px);height:clamp(150px,24vh,210px);filter:drop-shadow(0 24px 50px rgba(0,0,0,.6)) drop-shadow(0 0 36px rgba(255,205,0,.14))}
+#signBox svg{width:100%;height:100%}
+.zoom{animation:zoomIn .5s cubic-bezier(.2,1.2,.3,1) both}
+@keyframes zoomIn{from{transform:scale(.2) translateY(40px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+#tbar{height:9px;border-radius:5px;background:#101A30;overflow:hidden;margin:0 auto 18px;max-width:420px}
+#tfill{height:100%;width:100%;border-radius:5px;background:linear-gradient(90deg,var(--gron),var(--gul) 60%,var(--rod));transition:none}
+#opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{cursor:pointer;text-align:left;border:1px solid var(--line);border-radius:16px;background:linear-gradient(170deg,rgba(20,32,60,.8),rgba(10,17,33,.9));
+padding:15px 18px;color:var(--ink);font:600 16px 'Familjen Grotesk',sans-serif;transition:transform .14s,border-color .14s,background .14s}
+.opt small{display:block;font-weight:400;font-size:11.5px;color:var(--faint);font-family:'Spline Sans Mono',monospace;margin-top:3px;letter-spacing:.03em}
+.opt:hover:not(:disabled){transform:translateY(-2px);border-color:rgba(255,205,0,.5)}
+.opt:disabled{cursor:default}
+.opt.correct{border-color:var(--gron);background:rgba(43,232,164,.12);box-shadow:0 0 24px rgba(43,232,164,.18)}
+.opt.wrong{border-color:var(--rod);background:rgba(232,52,74,.12);animation:shake .35s}
+.opt.dim{opacity:.35}
+@keyframes shake{20%{transform:translateX(-7px)}45%{transform:translateX(6px)}70%{transform:translateX(-4px)}90%{transform:translateX(2px)}}
+#fact{min-height:54px;margin-top:16px;text-align:center;color:var(--dim);font-size:14.5px;line-height:1.5;padding:0 8px}
+#fact b{color:var(--gul)}
+#pop{position:fixed;left:50%;top:30%;transform:translateX(-50%);font-family:'Spline Sans Mono',monospace;font-weight:700;font-size:30px;color:var(--gron);opacity:0;pointer-events:none;z-index:50;text-shadow:0 0 30px rgba(43,232,164,.5)}
+.popgo{animation:popfly 1s ease-out both}
+@keyframes popfly{0%{opacity:0;transform:translate(-50%,12px) scale(.7)}25%{opacity:1;transform:translate(-50%,0) scale(1.1)}100%{opacity:0;transform:translate(-50%,-52px) scale(1)}}
+.ovl{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(4,7,14,.8);backdrop-filter:blur(10px);overflow:auto}
+.panel{max-width:640px;width:92vw;background:linear-gradient(170deg,#101B33,#0A111F);border:1px solid var(--line);border-radius:26px;padding:clamp(26px,4vw,46px);margin:4vh 0;text-align:center;box-shadow:0 40px 120px rgba(0,0,0,.6)}
+.kick{font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spacing:.34em;color:var(--gul);text-transform:uppercase}
+.panel h1{font-size:clamp(36px,6.4vw,60px);letter-spacing:-.03em;margin:12px 0 8px}
+.panel p{color:var(--dim);line-height:1.6;max-width:470px;margin:0 auto;font-size:15.5px}
+.btn{display:inline-block;cursor:pointer;background:var(--gul);color:#14171D;border:4px solid #E0162B;border-radius:16px;
+font:700 17px 'Familjen Grotesk',sans-serif;padding:15px 36px;margin-top:26px;text-decoration:none;
+box-shadow:0 0 0 3px rgba(255,255,255,.1),0 12px 36px rgba(255,205,0,.25);transition:transform .15s}
+.btn:hover{transform:translateY(-2px) rotate(-.6deg)}
+.btn.ghost{background:transparent;color:var(--dim);border-color:var(--line);box-shadow:none;font-weight:400}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0 4px}
+.stat{border:1px solid var(--line);border-radius:14px;padding:16px 8px}
+.stat .v{font-family:'Spline Sans Mono',monospace;font-size:clamp(22px,4vw,32px);font-weight:700;color:var(--gul)}
+.stat .l{font-size:11px;color:var(--faint);letter-spacing:.14em;text-transform:uppercase;margin-top:5px;font-family:'Spline Sans Mono',monospace}
+.newbest{display:inline-block;background:rgba(43,232,164,.12);border:1px solid rgba(43,232,164,.4);color:var(--gron);border-radius:99px;padding:6px 16px;font-size:12.5px;font-family:'Spline Sans Mono',monospace;letter-spacing:.08em;margin-top:14px}
+.hidden{display:none!important}
+@media(max-width:540px){#opts{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="aurora a1"></div><div class="aurora a2"></div>
+<div id="wrap">
+  <div class="top">
+    <a href="index.html">← BrainRoad</a>
+    <div class="hudr"><span id="streakChip">🔥 STREAK ×<span id="streakN">0</span></span><span>SCORE <b id="score">0</b></span></div>
+  </div>
+  <div id="prog"><div id="progFill"></div></div>
+  <div class="qcount" id="qcount"></div>
+  <h2 class="q">What does this sign mean?</h2>
+  <div id="stage"><div id="signBox"></div></div>
+  <div id="tbar"><div id="tfill"></div></div>
+  <div id="opts"></div>
+  <div id="fact"></div>
+</div>
+<div id="pop"></div>
+
+<div class="ovl" id="startOvl">
+  <div class="panel">
+    <div class="kick">Sign recognition · 15 signs</div>
+    <h1>SIGN MASTER</h1>
+    <p>One Swedish sign — four meanings — six seconds. A correct answer scores points, faster answers score more, and a streak multiplies. After each sign: the rule you need to know for the real theory test.</p>
+    <button class="btn" id="startBtn">GO!</button>
+  </div>
+</div>
+
+<div class="ovl hidden" id="resOvl">
+  <div class="panel">
+    <div class="kick">Results</div>
+    <h1 id="resTitle">NICE!</h1>
+    <div class="statgrid">
+      <div class="stat"><div class="v" id="rScore">0</div><div class="l">points</div></div>
+      <div class="stat"><div class="v" id="rAcc">0/15</div><div class="l">correct</div></div>
+      <div class="stat"><div class="v" id="rTime">0.0s</div><div class="l">avg time</div></div>
+    </div>
+    <div id="bestBadge"></div>
+    <p id="resNote" style="margin-top:14px;font-size:13.5px"></p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" id="againBtn">PLAY AGAIN</button>
+      <a class="btn ghost" href="index.html">BACK TO MENU</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ SWEDISH SIGN LIBRARY ============ */
+const PIKT='#161A21',GUL='#FFCD00',ROD='#E0162B',BLA='#1262B3',VIT='#F4F6F8';
+const tri=p=>`<polygon points="50,8 94,84 6,84" fill="${GUL}" stroke="${ROD}" stroke-width="8" stroke-linejoin="round"/>${p}`;
+const ring=(fill,p)=>`<circle cx="50" cy="50" r="44" fill="${fill}" stroke="${ROD}" stroke-width="9"/>${p}`;
+const bcirc=p=>`<circle cx="50" cy="50" r="46" fill="${BLA}" stroke="${VIT}" stroke-width="3"/>${p}`;
+const bsq=p=>`<rect x="6" y="6" width="88" height="88" rx="10" fill="${BLA}" stroke="${VIT}" stroke-width="3"/>${p}`;
+const carF=(x,y,c)=>`<g transform="translate(${x} ${y})" fill="${c}"><rect x="3" y="0" width="14" height="9" rx="3.5"/><rect x="0" y="6" width="20" height="15" rx="4"/></g>`;
+const rArc=a=>`<g transform="rotate(${a} 50 50)"><path d="M72.5 37 A26 26 0 0 0 50 24" fill="none" stroke="#fff" stroke-width="7"/><polygon points="36,24 50,16 50,31" fill="#fff"/></g>`;
+const spd=n=>ring(GUL,`<text x="50" y="63" text-anchor="middle" font-size="38" font-weight="700" font-family="'Familjen Grotesk',sans-serif" fill="${PIKT}">${n}</text>`);
+const MOOSE_P=`<g fill="${PIKT}" stroke="${PIKT}" stroke-width="1.5" stroke-linejoin="round"><path d="M22 48 L22 44 L30 42 L34 43 L42 55 L66 55 L70 58 L69 64 L69 78 L65 78 L65 64 L59 64 L59 78 L55 78 L55 63 L47 63 L47 78 L43 78 L43 63 L39 60 L34 52 L28 52 Z"/><path d="M31 42 L29 30 L33 31 L34.5 37 L36 30 L40 31 L37 43 Z"/></g>`;
+const SIGNS={
+ alg:{en:'Moose crossing',sv:'Varning för älg',cat:'warning',fact:'Most wildlife accidents happen at <b>dawn and dusk</b> — slow down near forested stretches.',svg:tri(MOOSE_P)},
+ barn:{en:'Children',sv:'Varning för barn',cat:'warning',fact:'Often found near <b>schools and playgrounds</b> — be prepared to stop completely.',svg:tri(`<g fill="${PIKT}"><circle cx="41" cy="38" r="5.5"/><path d="M38 45 L46 47 L45 56 L53 62 L50 67 L42 60 L38 65 L31 77 L26 74 L34 61 L35 53 L30 57 L25 52 L33 44 Z"/><circle cx="63" cy="47" r="4.5"/><path d="M60 53 L67 55 L66 62 L71 67 L68 71 L62 65 L57 77 L52 75 L58 62 Z"/></g>`)},
+ halka:{en:'Slippery road',sv:'Varning för slirig väg',cat:'warning',fact:'Reduce speed <b>well in advance</b> — all steering and braking should be gentle.',svg:tri(`<g><path d="M28 80 Q35 70 28 61 Q22 53 30 46" fill="none" stroke="${PIKT}" stroke-width="3.5"/><path d="M42 80 Q49 70 42 61 Q36 53 44 46" fill="none" stroke="${PIKT}" stroke-width="3.5"/><g transform="rotate(20 61 58)"><rect x="51" y="40" width="21" height="36" rx="6" fill="${PIKT}"/><rect x="55" y="49" width="13" height="11" rx="2" fill="${GUL}"/></g></g>`)},
+ gangare_v:{en:'Pedestrian crossing ahead',sv:'Varning för övergångsställe',cat:'warning',fact:'You are <b>approaching</b> a pedestrian crossing — adjust your speed now.',svg:tri(`<g fill="${PIKT}"><circle cx="50" cy="36" r="5.5"/><path d="M45 43 L55 43 L57 57 L61 73 L55 74 L51 60 L47 74 L41 73 L45 57 Z"/><rect x="27" y="77" width="11" height="4.5"/><rect x="44" y="77" width="11" height="4.5"/><rect x="61" y="77" width="11" height="4.5"/></g>`)},
+ cykel:{en:'Cyclists',sv:'Varning för cyklande',cat:'warning',fact:'Common where <b>cycle paths cross</b> the road — cyclists can appear suddenly.',svg:tri(`<g fill="none" stroke="${PIKT}" stroke-width="3.5" stroke-linecap="round"><circle cx="33" cy="67" r="10"/><circle cx="67" cy="67" r="10"/><path d="M33 67 L44 49 L61 49 L67 67 M44 49 L51 67 L33 67"/><path d="M58 44 L66 44 M40 45 L48 45"/></g>`)},
+ vagarbete:{en:'Roadworks',sv:'Varning för vägarbete',cat:'warning',fact:'Road workers have their <b>workplace on the road</b> — reduce speed significantly.',svg:tri(`<g fill="${PIKT}"><path d="M22 81 Q40 70 58 77 L78 81 Z"/><circle cx="45" cy="38" r="5.5"/><path d="M41 45 L49 44 L54 54 L50 59 L49 78 L44 78 L44 60 L38 56 Z"/><path d="M52 50 L68 68" stroke="${PIKT}" stroke-width="3.5"/><path d="M64 64 L73 70 L67 77 Z"/></g>`)},
+ annan_fara:{en:'Other danger',sv:'Varning för annan fara',cat:'warning',fact:'Danger not covered by any other sign — read the <b>additional plate</b> below the sign.',svg:tri(`<g fill="${PIKT}"><rect x="46.5" y="32" width="7" height="29" rx="3.5"/><circle cx="50" cy="71" r="4.5"/></g>`)},
+ vajning:{en:'Give way',sv:'Väjningsplikt',cat:'priority',fact:'Give priority to traffic on the crossing road — <b>stop if necessary</b>, otherwise it\'s enough to let them pass.',svg:`<polygon points="7,16 93,16 50,90" fill="${GUL}" stroke="${ROD}" stroke-width="8" stroke-linejoin="round"/>`},
+ stopp:{en:'Stop',sv:'Stopplikt',cat:'priority',fact:'You must <b>always stop completely</b> at the stop line — even if the road looks empty.',svg:`<polygon points="92.5,67.6 67.6,92.5 32.4,92.5 7.5,67.6 7.5,32.4 32.4,7.5 67.6,7.5 92.5,32.4" fill="${ROD}" stroke="${VIT}" stroke-width="5" stroke-linejoin="round"/><text x="50" y="59" text-anchor="middle" font-family="'Familjen Grotesk',sans-serif" font-size="24" font-weight="700" fill="#fff" letter-spacing="1">STOP</text>`},
+ huvudled:{en:'Priority road',sv:'Huvudled',cat:'priority',fact:'You have right of way — until the sign <b>priority road ends</b>. Crossing traffic must give way.',svg:`<g transform="rotate(45 50 50)"><rect x="23" y="23" width="54" height="54" rx="7" fill="${VIT}"/><rect x="32" y="32" width="36" height="36" rx="4" fill="${GUL}"/></g>`},
+ mote:{en:'Oncoming traffic must yield',sv:'Mötande trafik har väjningsplikt',cat:'priority',fact:'At the narrow section, <b>you have the right of way</b> — the red arrow must wait.',svg:bsq(`<path d="M62 76 L62 30" stroke="#fff" stroke-width="8" stroke-linecap="round"/><polygon points="62,16 52,33 72,33" fill="#fff"/><path d="M38 24 L38 66" stroke="${ROD}" stroke-width="7" stroke-linecap="round"/><polygon points="38,80 29,63 47,63" fill="${ROD}"/>`)},
+ fart30:{en:'Speed limit 30',sv:'Hastighetsbegränsning 30',cat:'prohibition',fact:'30 often applies near <b>schools</b> — remains in force until the next speed sign.',svg:spd(30)},
+ fart50:{en:'Speed limit 50',sv:'Hastighetsbegränsning 50',cat:'prohibition',fact:'Common default speed in <b>built-up areas</b>.',svg:spd(50)},
+ fart70:{en:'Speed limit 70',sv:'Hastighetsbegränsning 70',cat:'prohibition',fact:'Default speed <b>outside built-up areas</b> when no other sign is posted.',svg:spd(70)},
+ fart90:{en:'Speed limit 90',sv:'Hastighetsbegränsning 90',cat:'prohibition',fact:'At 90 km/h you travel <b>25 metres per second</b> — maintain a safe following distance.',svg:spd(90)},
+ infart:{en:'No entry',sv:'Förbud mot infart',cat:'prohibition',fact:'The street is <b>one-way in the other direction</b> — you may not enter here.',svg:`<circle cx="50" cy="50" r="46" fill="${ROD}"/><rect x="20" y="43.5" width="60" height="13" rx="3" fill="#fff"/>`},
+ omkorning:{en:'No overtaking',sv:'Omkörningsförbud',cat:'prohibition',fact:'Forbidden to overtake <b>motor vehicles</b> until the prohibition ends.',svg:ring(GUL,carF(26,37,ROD)+carF(55,37,PIKT))},
+ p_forbud:{en:'No parking',sv:'Förbud mot att parkera',cat:'prohibition',fact:'You may <b>stop</b> to load or unload — but not park.',svg:`<circle cx="50" cy="50" r="44" fill="${BLA}" stroke="${ROD}" stroke-width="9"/><line x1="80" y1="20" x2="20" y2="80" stroke="${ROD}" stroke-width="9"/>`},
+ stanna_forbud:{en:'No stopping',sv:'Förbud mot att stanna',cat:'prohibition',fact:'You may <b>neither stop nor park</b> here — not even for drop-offs.',svg:`<circle cx="50" cy="50" r="44" fill="${BLA}" stroke="${ROD}" stroke-width="9"/><line x1="80" y1="20" x2="20" y2="80" stroke="${ROD}" stroke-width="9"/><line x1="20" y1="20" x2="80" y2="80" stroke="${ROD}" stroke-width="9"/>`},
+ hoger:{en:'Mandatory right turn',sv:'Påbjuden körriktning höger',cat:'mandatory',fact:'Mandatory signs are <b>compulsory</b> — you must turn right here.',svg:bcirc(`<path d="M24 50 L56 50" stroke="#fff" stroke-width="9" stroke-linecap="round"/><polygon points="76,50 52,36 52,64" fill="#fff"/>`)},
+ cirkulation:{en:'Roundabout',sv:'Cirkulationsplats',cat:'mandatory',fact:'Drive <b>anti-clockwise</b> in the roundabout — usually combined with give-way at the entrance.',svg:bcirc(rArc(0)+rArc(120)+rArc(240))},
+ motorvag:{en:'Motorway',sv:'Motorväg',cat:'info',fact:'Only motor vehicles capable of at least <b>40 km/h</b> — pedestrians and cyclists prohibited.',svg:bsq(`<g stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round"><path d="M39 80 L43 26 M61 80 L57 26"/></g><path d="M20 46 L80 46" stroke="#fff" stroke-width="6"/><path d="M27 46 L27 36 M73 46 L73 36" stroke="#fff" stroke-width="5"/>`)},
+ overgang_b:{en:'Pedestrian crossing',sv:'Övergångsställe',cat:'info',fact:'Give way to pedestrians who have stepped out or are about to step onto the crossing.',svg:bsq(`<polygon points="50,16 87,82 13,82" fill="#fff"/><g fill="${PIKT}"><circle cx="50" cy="42" r="4.5"/><path d="M46 48 L54 48 L56 60 L59 72 L54 73 L51 62 L48 73 L43 72 L46 60 Z"/><rect x="33" y="75" width="8" height="4"/><rect x="46" y="75" width="8" height="4"/><rect x="59" y="75" width="8" height="4"/></g>`)}
+};
+const signSVG=id=>`<svg viewBox="0 0 100 100">${SIGNS[id].svg}</svg>`;
+const IDS=Object.keys(SIGNS);
+
+/* ============ QUIZ ============ */
+const N=15,TMAX=6000;
+let order=[],qi=0,score=0,streak=0,correct=0,times=[],tStart=0,raf=null,answered=false;
+const $=id=>document.getElementById(id);
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startGame(){
+  $('startOvl').classList.add('hidden');$('resOvl').classList.add('hidden');
+  order=shuffle([...IDS]).slice(0,N);qi=0;score=0;streak=0;correct=0;times=[];
+  updateHud();nextQ();
+}
+function updateHud(){
+  $('score').textContent=score;
+  $('streakChip').style.display=streak>=2?'inline-block':'none';
+  $('streakN').textContent=streak;
+  $('progFill').style.width=(qi/N*100)+'%';
+}
+function nextQ(){
+  if(qi>=N)return finish();
+  answered=false;
+  const id=order[qi];
+  $('qcount').textContent=`SIGN ${qi+1} OF ${N}`;
+  const box=$('signBox');box.innerHTML=signSVG(id);
+  box.classList.remove('zoom');void box.offsetWidth;box.classList.add('zoom');
+  $('fact').innerHTML='';
+  const sameCat=shuffle(IDS.filter(x=>x!==id&&SIGNS[x].cat===SIGNS[id].cat));
+  const others=shuffle(IDS.filter(x=>x!==id&&!sameCat.slice(0,2).includes(x)));
+  const opts=shuffle([id,...sameCat.slice(0,2),...others.slice(0,3-Math.min(2,sameCat.length))].slice(0,4));
+  while(opts.length<4){const r=IDS[Math.floor(Math.random()*IDS.length)];if(!opts.includes(r))opts.push(r)}
+  $('opts').innerHTML=opts.map(o=>`<button class="opt" data-id="${o}">${SIGNS[o].en}<small>${SIGNS[o].sv}</small></button>`).join('');
+  document.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>answer(b,id)));
+  tStart=performance.now();tick();
+}
+function tick(){
+  cancelAnimationFrame(raf);
+  const step=()=>{
+    const left=1-(performance.now()-tStart)/TMAX;
+    $('tfill').style.width=Math.max(0,left*100)+'%';
+    if(left<=0&&!answered)return timeout();
+    if(!answered)raf=requestAnimationFrame(step);
+  };raf=requestAnimationFrame(step);
+}
+function lockOpts(id){
+  document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;
+    if(b.dataset.id===id)b.classList.add('correct');
+    else if(!b.classList.contains('wrong'))b.classList.add('dim')});
+}
+function answer(btn,id){
+  if(answered)return;answered=true;cancelAnimationFrame(raf);
+  const dt=performance.now()-tStart;times.push(dt);
+  if(btn.dataset.id===id){
+    correct++;streak++;
+    const speedB=Math.round(Math.max(0,(1-dt/TMAX))*80);
+    const streakB=Math.min(100,(streak-1)*20);
+    const gain=100+speedB+streakB;score+=gain;
+    lockOpts(id);
+    const pop=$('pop');pop.textContent='+'+gain+(streak>=3?' 🔥':'');pop.classList.remove('popgo');void pop.offsetWidth;pop.classList.add('popgo');
+    $('fact').innerHTML='✅ '+SIGNS[id].fact;
+    setTimeout(()=>{qi++;updateHud();nextQ()},1700);
+  }else{
+    streak=0;btn.classList.add('wrong');lockOpts(id);
+    $('fact').innerHTML=`❌ That was <b>${SIGNS[id].en}</b>. ${SIGNS[id].fact}`;
+    setTimeout(()=>{qi++;updateHud();nextQ()},2600);
+  }
+  updateHud();
+}
+function timeout(){
+  if(answered)return;answered=true;cancelAnimationFrame(raf);
+  const id=order[qi];streak=0;times.push(TMAX);lockOpts(id);
+  $('fact').innerHTML=`⏱️ Time's up! That was <b>${SIGNS[id].en}</b>. ${SIGNS[id].fact}`;
+  updateHud();
+  setTimeout(()=>{qi++;updateHud();nextQ()},2600);
+}
+function finish(){
+  $('progFill').style.width='100%';
+  $('rScore').textContent=score;
+  $('rAcc').textContent=correct+'/'+N;
+  $('rTime').textContent=(times.reduce((a,b)=>a+b,0)/times.length/1000).toFixed(1)+'s';
+  const t=$('resTitle');
+  t.textContent=correct===N?'SIGN MASTER! 👑':correct>=12?'STRONG DRIVE!':correct>=8?'ON THE RIGHT TRACK':'YOUR THEORY BOOK AWAITS';
+  const badge=$('bestBadge');badge.innerHTML='';
+  const old=localStorage.getItem('br.signs.best');
+  if(old==null||score>+old){localStorage.setItem('br.signs.best',score);badge.innerHTML='<span class="newbest">★ NEW RECORD</span>'}
+  localStorage.setItem('br.plays',(+localStorage.getItem('br.plays')||0)+1);
+  $('resNote').textContent='Tip: signs with a yellow background and red border warn or prohibit — blue signs mandate an action or give information.';
+  $('resOvl').classList.remove('hidden');
+}
+$('startBtn').addEventListener('click',startGame);
+$('againBtn').addEventListener('click',startGame);
+</script>
+</body>
+</html>

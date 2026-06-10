@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Intersection — BrainRoad</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g transform='rotate(45 50 50)'><rect x='22' y='22' width='56' height='56' rx='8' fill='white'/><rect x='32' y='32' width='36' height='36' rx='4' fill='%23FFCD00'/></g></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Spline+Sans+Mono:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#060B16;--line:rgba(170,200,255,.12);--ink:#EAF2FF;--dim:#8FA3C4;--faint:#5A6C8C;
+--gul:#FFCD00;--rod:#E8344A;--gron:#2BE8A4;--bla:#3D8BFD}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(1000px 700px at 30% -10%,#101E3D 0%,var(--bg0) 55%) fixed,var(--bg0);
+color:var(--ink);font-family:'Familjen Grotesk',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+body::after{content:"";position:fixed;inset:0;z-index:90;pointer-events:none;opacity:.05;
+background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.7'/></svg>")}
+.aurora{position:fixed;border-radius:50%;filter:blur(95px);pointer-events:none;z-index:0;mix-blend-mode:screen}
+.a1{width:55vw;height:40vh;background:radial-gradient(ellipse,rgba(61,139,253,.16),transparent 70%);top:-10vh;right:-8vw;animation:dr 28s ease-in-out infinite alternate}
+.a2{width:48vw;height:36vh;background:radial-gradient(ellipse,rgba(43,232,164,.12),transparent 70%);bottom:-12vh;left:-10vw;animation:dr 34s ease-in-out infinite alternate-reverse}
+@keyframes dr{to{transform:translate(-7vw,7vh) scale(1.14)}}
+#wrap{position:relative;z-index:2;max-width:1100px;margin:0 auto;padding:18px clamp(14px,3vw,32px) 50px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.top a{color:var(--dim);text-decoration:none;font-size:14px}.top a:hover{color:var(--ink)}
+.hudr{font-family:'Spline Sans Mono',monospace;font-size:13px;color:var(--dim)}
+.hudr b{color:var(--bla);font-size:19px;font-weight:600}
+#board{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,1fr);gap:22px;align-items:start}
+#sceneWrap{position:relative;border-radius:24px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.5);background:#0A1120}
+#scene{display:block;width:100%;height:auto}
+#verdict{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#verdict div{font-size:clamp(34px,5vw,56px);font-weight:700;letter-spacing:-.02em;text-shadow:0 10px 40px rgba(0,0,0,.8);opacity:0;transform:scale(.6)}
+#verdict div.show{animation:vpop .55s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes vpop{to{opacity:1;transform:scale(1)}}
+#side{display:flex;flex-direction:column;gap:14px}
+.pcard{border:1px solid var(--line);border-radius:18px;padding:18px 20px;background:linear-gradient(170deg,rgba(20,32,60,.8),rgba(10,17,33,.9))}
+.plab{font-family:'Spline Sans Mono',monospace;font-size:10.5px;letter-spacing:.26em;color:var(--faint);text-transform:uppercase;margin-bottom:8px}
+#task{font-size:19px;font-weight:600;line-height:1.35}
+#task small{display:block;font-weight:400;font-size:13.5px;color:var(--dim);margin-top:5px}
+#signRow{display:flex;align-items:center;gap:14px}
+#signRow svg{width:64px;height:64px;flex:none;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
+#signName{font-size:15px;font-weight:600}
+#signName small{display:block;color:var(--faint);font-weight:400;font-size:12px}
+#answerRow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.abtn{cursor:pointer;border:none;border-radius:16px;padding:20px 10px;font:700 21px 'Familjen Grotesk',sans-serif;letter-spacing:.04em;color:#0A1120;transition:transform .12s,box-shadow .12s}
+.abtn:disabled{opacity:.45;cursor:default;transform:none!important}
+#goBtn{background:linear-gradient(170deg,#43F2B0,#1FC487);box-shadow:0 10px 30px rgba(43,232,164,.25)}
+#waitBtn{background:linear-gradient(170deg,#FF5A6E,#D6243C);color:#fff;box-shadow:0 10px 30px rgba(232,52,74,.25)}
+.abtn:hover:not(:disabled){transform:translateY(-3px)}
+.abtn small{display:block;font-size:11px;font-weight:400;font-family:'Spline Sans Mono',monospace;letter-spacing:.12em;margin-top:3px;opacity:.75}
+#timerWrap{display:flex;align-items:center;gap:12px}
+#timerWrap svg{width:52px;height:52px;flex:none}
+#timerTxt{font-family:'Spline Sans Mono',monospace;font-size:12.5px;color:var(--dim)}
+#expl{font-size:14.5px;line-height:1.6;color:var(--dim);min-height:66px}
+#expl b{color:var(--ink)}
+#expl .tag{display:inline-block;font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spacing:.1em;padding:3px 10px;border-radius:99px;margin-bottom:8px}
+#expl .tag.ok{background:rgba(43,232,164,.13);color:var(--gron);border:1px solid rgba(43,232,164,.4)}
+#expl .tag.bad{background:rgba(232,52,74,.13);color:var(--rod);border:1px solid rgba(232,52,74,.4)}
+.keyhint{font-family:'Spline Sans Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.08em;text-align:center}
+kbd{border:1px solid var(--line);border-bottom-width:3px;border-radius:5px;padding:1px 7px;background:#121D36;color:var(--ink)}
+.ovl{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(4,7,14,.8);backdrop-filter:blur(10px);overflow:auto}
+.panel{max-width:640px;width:92vw;background:linear-gradient(170deg,#101B33,#0A111F);border:1px solid var(--line);border-radius:26px;padding:clamp(26px,4vw,46px);margin:4vh 0;text-align:center;box-shadow:0 40px 120px rgba(0,0,0,.6)}
+.kick{font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spacing:.34em;color:var(--bla);text-transform:uppercase}
+.panel h1{font-size:clamp(36px,6.4vw,58px);letter-spacing:-.03em;margin:12px 0 8px}
+.panel p{color:var(--dim);line-height:1.6;max-width:480px;margin:0 auto;font-size:15.5px}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:24px 0 0;text-align:left}
+.rule{border:1px solid var(--line);border-radius:13px;padding:12px 14px;font-size:13px;color:var(--dim);line-height:1.45}
+.rule b{display:block;color:var(--ink);font-size:14px}
+.btn{display:inline-block;cursor:pointer;background:var(--gul);color:#14171D;border:4px solid #E0162B;border-radius:16px;
+font:700 17px 'Familjen Grotesk',sans-serif;padding:15px 36px;margin-top:24px;text-decoration:none;
+box-shadow:0 0 0 3px rgba(255,255,255,.1),0 12px 36px rgba(255,205,0,.25);transition:transform .15s}
+.btn:hover{transform:translateY(-2px) rotate(-.6deg)}
+.btn.ghost{background:transparent;color:var(--dim);border-color:var(--line);box-shadow:none;font-weight:400}
+.statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:24px 0 4px}
+.stat{border:1px solid var(--line);border-radius:14px;padding:16px 8px}
+.stat .v{font-family:'Spline Sans Mono',monospace;font-size:clamp(24px,4vw,34px);font-weight:700;color:var(--bla)}
+.stat .l{font-size:11px;color:var(--faint);letter-spacing:.14em;text-transform:uppercase;margin-top:5px;font-family:'Spline Sans Mono',monospace}
+.newbest{display:inline-block;background:rgba(43,232,164,.12);border:1px solid rgba(43,232,164,.4);color:var(--gron);border-radius:99px;padding:6px 16px;font-size:12.5px;font-family:'Spline Sans Mono',monospace;letter-spacing:.08em;margin-top:14px}
+.hidden{display:none!important}
+@media(max-width:860px){#board{grid-template-columns:1fr}.rules{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+.hl{animation:hlp 1.6s ease-in-out infinite}
+@keyframes hlp{50%{opacity:.05}}
+</style>
+</head>
+<body>
+<div class="aurora a1"></div><div class="aurora a2"></div>
+<div id="wrap">
+  <div class="top">
+    <a href="index.html">← BrainRoad</a>
+    <div class="hudr" id="roundLbl">INTERSECTION — </div>
+    <div class="hudr">SCORE <b id="score">0</b></div>
+  </div>
+
+  <div id="board">
+    <div id="sceneWrap">
+      <svg id="scene" viewBox="0 0 600 600"></svg>
+      <div id="verdict"><div id="verdictTxt"></div></div>
+    </div>
+    <div id="side">
+      <div class="pcard"><div class="plab">Situation</div><div id="task">—</div></div>
+      <div class="pcard"><div class="plab">Sign at your road</div><div id="signRow"><span id="signHolder"></span><div id="signName">—</div></div></div>
+      <div class="pcard">
+        <div class="plab">Your decision</div>
+        <div id="answerRow">
+          <button class="abtn" id="goBtn">GO<small>I GO FIRST</small></button>
+          <button class="abtn" id="waitBtn">WAIT<small>I LET THEM PASS</small></button>
+        </div>
+        <div style="height:12px"></div>
+        <div id="timerWrap">
+          <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="none" stroke="#101A30" stroke-width="6"/><circle id="tring" cx="30" cy="30" r="26" fill="none" stroke="#3D8BFD" stroke-width="6" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="0" transform="rotate(-90 30 30)"/></svg>
+          <span id="timerTxt">Decide before you reach the intersection.</span>
+        </div>
+      </div>
+      <div class="pcard"><div class="plab">The Rule</div><div id="expl">The sign plus where the other cars are coming from decides. Trust the rules, not your gut.</div></div>
+      <div class="keyhint"><kbd>G</kbd> = go &nbsp;·&nbsp; <kbd>W</kbd> = wait</div>
+    </div>
+  </div>
+</div>
+
+<div class="ovl" id="startOvl">
+  <div class="panel">
+    <div class="kick">Right-of-way rules · 12 intersections</div>
+    <h1>INTERSECTION</h1>
+    <p>You are the <b style="color:var(--gul)">yellow car</b>. At each intersection: read the sign, see where the others are coming from and decide — <b style="color:var(--gron)">go</b> or <b style="color:var(--rod)">wait</b>? Afterwards, the cars show exactly what would have happened.</p>
+    <div class="rules">
+      <div class="rule"><b>Right-hand rule</b>No signs: the car from the right goes first — you give way.</div>
+      <div class="rule"><b>Priority road ◆</b>You have right of way — crossing traffic waits for you.</div>
+      <div class="rule"><b>Give way ▽ / Stop</b>You yield to crossing traffic. Stop = always stop completely.</div>
+      <div class="rule"><b>Special cases</b>Left turn yields to oncoming. Exit always yields — to everyone.</div>
+    </div>
+    <button class="btn" id="startBtn">ENTER INTERSECTION</button>
+  </div>
+</div>
+
+<div class="ovl hidden" id="resOvl">
+  <div class="panel">
+    <div class="kick">Results</div>
+    <h1 id="resTitle">INTERSECTION KING!</h1>
+    <div class="statgrid">
+      <div class="stat"><div class="v" id="rScore">0</div><div class="l">points</div></div>
+      <div class="stat"><div class="v" id="rAcc">0/12</div><div class="l">correct decisions</div></div>
+    </div>
+    <div id="bestBadge"></div>
+    <p style="margin-top:14px;font-size:13.5px">About one in three police-reported accidents in built-up areas happens at an intersection — and most are due to a misjudged right-of-way. Drill until it's automatic.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" id="againBtn">GO AGAIN</button>
+      <a class="btn ghost" href="index.html">BACK TO MENU</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- mini sign library ---------- */
+const GULs='#FFCD00',RODs='#E0162B',VITs='#F4F6F8',BLAs='#1262B3';
+const SIGNS={
+ huvudled:{en:'Priority road',sv:'Huvudled',svg:`<g transform="rotate(45 50 50)"><rect x="23" y="23" width="54" height="54" rx="7" fill="${VITs}"/><rect x="32" y="32" width="36" height="36" rx="4" fill="${GULs}"/></g>`},
+ vajning:{en:'Give way',sv:'Väjningsplikt',svg:`<polygon points="7,16 93,16 50,90" fill="${GULs}" stroke="${RODs}" stroke-width="8" stroke-linejoin="round"/>`},
+ stopp:{en:'Stop',sv:'Stopplikt',svg:`<polygon points="92.5,67.6 67.6,92.5 32.4,92.5 7.5,67.6 7.5,32.4 32.4,7.5 67.6,7.5 92.5,32.4" fill="${RODs}" stroke="${VITs}" stroke-width="5" stroke-linejoin="round"/><text x="50" y="59" text-anchor="middle" font-family="'Familjen Grotesk',sans-serif" font-size="24" font-weight="700" fill="#fff" letter-spacing="1">STOP</text>`},
+ utfart:{en:'Exit — yield to everyone',sv:'Utfart',svg:`<rect x="8" y="8" width="84" height="84" rx="10" fill="${BLAs}" stroke="${VITs}" stroke-width="3"/><text x="50" y="68" text-anchor="middle" font-family="'Familjen Grotesk',sans-serif" font-size="52" font-weight="700" fill="#fff">P</text>`},
+ none:{en:'Unsigned — right-hand rule',sv:'No signs',svg:`<circle cx="50" cy="50" r="44" fill="none" stroke="rgba(170,200,255,.25)" stroke-width="3" stroke-dasharray="8 8"/><text x="50" y="62" text-anchor="middle" font-family="'Familjen Grotesk',sans-serif" font-size="34" fill="rgba(170,200,255,.5)">?</text>`}
+};
+
+/* ---------- scenarios ---------- */
+const SC=[
+ {sign:'none',other:'right',move:'rakt',answer:'vanta',expl:'<b>Right-hand rule:</b> when no sign controls the intersection, the car coming from the right goes first. The car is to your right — you give way.'},
+ {sign:'none',other:'left',move:'rakt',answer:'kor',expl:'<b>Right-hand rule</b> again — but now you are the "car from the right". The other driver gives way for you.'},
+ {sign:'none',other:null,move:'rakt',answer:'kor',expl:'Empty unsigned intersection — go, but ease off and look right. The right-hand rule applies to any car you haven\'t seen yet.'},
+ {sign:'huvudled',other:'right',move:'rakt',answer:'kor',expl:'You\'re on a <b>priority road</b> — crossing traffic must give way, even when it comes from the right. The right-hand rule doesn\'t apply here.'},
+ {sign:'huvudled',other:'left',move:'rakt',answer:'kor',expl:'<b>Priority road:</b> traffic joining from the side must let you pass. But keep your eye on that car — drivers make mistakes.'},
+ {sign:'vajning',other:'left',move:'rakt',answer:'vanta',expl:'<b>Give-way applies in both directions.</b> You yield to all traffic on the crossing road — it makes no difference that the car comes from the left.'},
+ {sign:'vajning',other:null,move:'rakt',answer:'kor',expl:'Give-way is <b>not the same as stop</b> — you don\'t have to stop when the road is clear. Slow down, check, and continue.'},
+ {sign:'stopp',other:null,move:'rakt',answer:'vanta',expl:'<b>Compulsory stop: you must always come to a complete halt</b> at the stop line — even when the intersection looks empty. Rolling slowly is still a violation.'},
+ {sign:'none',other:'ahead',move:'vanster',answer:'vanta',expl:'<b>Left turn:</b> you cross the oncoming lane. Oncoming traffic going straight always has priority over you.'},
+ {sign:'none',other:'ahead',move:'rakt',answer:'kor',expl:'Head-on through traffic is <b>no obstacle</b> — you pass each other in separate lanes. Stopping here would only cause confusion.'},
+ {sign:'utfart',other:'left',move:'rakt',answer:'vanta',expl:'<b>Exit rule:</b> when leaving a car park, property, petrol station or pedestrian zone you ALWAYS give way — the right-hand rule does not apply.'},
+ {sign:'huvudled',other:'ahead',move:'vanster',answer:'vanta',expl:'Even on a priority road: <b>when turning left you yield to oncoming traffic.</b> Priority only applies against crossing roads — not against the oncoming lane.'}
+];
+
+/* ---------- scene drawing ---------- */
+const svg=document.getElementById('scene');
+const ROADCOL='#1C2538',EDGE='#2E3C58';
+let meEl=null,otherEl=null,mePos=null,otherPos=null;
+function carSVG(color,isMe){
+  return `<polygon class="hl" points="-15,-32 15,-32 30,-84 -30,-84" fill="#FFF3C4" opacity=".12"/>
+  <rect x="-18" y="-32" width="36" height="64" rx="10" fill="${color}" stroke="rgba(0,0,0,.45)" stroke-width="2"/>
+  <rect x="-13" y="-19" width="26" height="13" rx="4" fill="#0E1422" opacity=".9"/>
+  <rect x="-13" y="11" width="26" height="9" rx="3" fill="#0E1422" opacity=".7"/>
+  <circle cx="-10" cy="-29" r="3.4" fill="#FFF3C4"/><circle cx="10" cy="-29" r="3.4" fill="#FFF3C4"/>
+  ${isMe?`<text x="0" y="-42" text-anchor="middle" font-family="'Spline Sans Mono',monospace" font-size="15" font-weight="700" fill="#FFCD00">YOU</text>`:''}`;
+}
+function buildScene(sc){
+  const dash='stroke="#A9B7D6" stroke-width="4" stroke-dasharray="18 16" opacity=".55"';
+  const trees=[[60,80],[140,40],[520,90],[560,170],[60,520],[120,560],[520,520],[470,560],[40,200],[555,420]]
+    .map(([x,y])=>`<circle cx="${x}" cy="${y}" r="${14+(x*y)%18}" fill="#0C1424"/>`).join('');
+  const utf=sc.sign==='utfart';
+  let yourRoad=utf
+    ? `<rect x="272" y="350" width="56" height="250" fill="#2A3146"/><rect x="272" y="350" width="56" height="250" fill="none" stroke="${EDGE}" stroke-width="4"/>`
+    : '';
+  let marking='';
+  if(sc.sign==='stopp')marking=`<rect x="303" y="356" width="44" height="8" fill="#D9E2F0"/>`;
+  if(sc.sign==='vajning')marking=`<g fill="#D9E2F0"><polygon points="306,356 316,356 311,370"/><polygon points="321,356 331,356 326,370"/><polygon points="336,356 346,356 341,370"/></g>`;
+  const signPost=sc.sign!=='none'&&sc.sign!=='utfart'
+    ? `<rect x="368" y="396" width="5" height="48" rx="2" fill="#5A6C8C"/><g transform="translate(344 350) scale(.54)">${SIGNS[sc.sign].svg}</g>`
+    : (utf?`<g transform="translate(352 420) scale(.5)">${SIGNS.utfart.svg}</g>`:'');
+  svg.innerHTML=`
+    <rect width="600" height="600" fill="#0A1120"/>${trees}
+    <rect x="250" y="0" width="100" height="600" fill="${ROADCOL}"/>
+    <rect x="0" y="250" width="600" height="100" fill="${ROADCOL}"/>
+    ${utf?`<rect x="250" y="350" width="100" height="250" fill="#0A1120"/>${yourRoad}`:''}
+    <line x1="250" y1="0" x2="250" y2="250" stroke="${EDGE}" stroke-width="4"/><line x1="350" y1="0" x2="350" y2="250" stroke="${EDGE}" stroke-width="4"/>
+    <line x1="250" y1="350" x2="250" y2="600" stroke="${EDGE}" stroke-width="4" ${utf?'opacity="0"':''}/><line x1="350" y1="350" x2="350" y2="600" stroke="${EDGE}" stroke-width="4" ${utf?'opacity="0"':''}/>
+    <line x1="0" y1="250" x2="250" y2="250" stroke="${EDGE}" stroke-width="4"/><line x1="0" y1="350" x2="250" y2="350" stroke="${EDGE}" stroke-width="4"/>
+    <line x1="350" y1="250" x2="600" y2="250" stroke="${EDGE}" stroke-width="4"/><line x1="350" y1="350" x2="600" y2="350" stroke="${EDGE}" stroke-width="4"/>
+    <line x1="300" y1="0" x2="300" y2="244" ${dash}/><line x1="300" y1="356" x2="300" y2="600" ${dash} ${utf?'opacity="0"':''}/>
+    <line x1="0" y1="300" x2="244" y2="300" ${dash}/><line x1="356" y1="300" x2="600" y2="300" ${dash}/>
+    ${marking}${signPost}
+    <g id="intent"></g><g id="cars"></g>
+    <rect width="600" height="600" fill="url(#nite)" pointer-events="none"/>
+    <defs><radialGradient id="nite" cx="50%" cy="50%" r="75%"><stop offset="55%" stop-color="rgba(4,8,16,0)"/><stop offset="100%" stop-color="rgba(4,8,16,.55)"/></radialGradient></defs>`;
+  const intent=svg.querySelector('#intent');
+  const ia=sc.move==='vanster'
+    ? `<path d="M325 452 Q325 278 235 276" fill="none" stroke="#FFCD00" stroke-width="5" stroke-dasharray="10 9" opacity=".8"/><polygon points="240,262 214,276 240,290" fill="#FFCD00" opacity=".85"/>`
+    : `<path d="M325 452 L325 216" fill="none" stroke="#FFCD00" stroke-width="5" stroke-dasharray="10 9" opacity=".8"/><polygon points="311,222 325,194 339,222" fill="#FFCD00" opacity=".85"/>`;
+  intent.innerHTML=ia;
+  const cars=svg.querySelector('#cars');
+  mePos={x:325,y:utf?470:478,deg:0};
+  meEl=document.createElementNS('http://www.w3.org/2000/svg','g');
+  meEl.innerHTML=carSVG('#FFCD00',true);
+  meEl.setAttribute('transform',`translate(${mePos.x} ${mePos.y}) rotate(0)`);
+  cars.appendChild(meEl);
+  otherEl=null;otherPos=null;
+  if(sc.other){
+    const P={right:{x:492,y:275,deg:-90},left:{x:108,y:325,deg:90},ahead:{x:275,y:112,deg:180}}[sc.other];
+    otherPos={...P};
+    otherEl=document.createElementNS('http://www.w3.org/2000/svg','g');
+    otherEl.innerHTML=carSVG('#D9E2F0',false);
+    otherEl.setAttribute('transform',`translate(${P.x} ${P.y}) rotate(${P.deg})`);
+    cars.appendChild(otherEl);
+  }
+}
+function drive(el,from,ctrl,to,dur,delay){
+  return new Promise(res=>{
+    const t0=performance.now()+(delay||0);
+    function step(now){
+      let t=(now-t0)/dur;
+      if(t<0){requestAnimationFrame(step);return}
+      t=Math.min(1,t);
+      const e=t*t*(3-2*t),u=1-e;
+      const x=u*u*from.x+2*u*e*ctrl.x+e*e*to.x;
+      const y=u*u*from.y+2*u*e*ctrl.y+e*e*to.y;
+      const dx=2*u*(ctrl.x-from.x)+2*e*(to.x-ctrl.x);
+      const dy=2*u*(ctrl.y-from.y)+2*e*(to.y-ctrl.y);
+      const deg=Math.atan2(dy,dx)*180/Math.PI+90;
+      el.setAttribute('transform',`translate(${x} ${y}) rotate(${deg})`);
+      if(t<1)requestAnimationFrame(step);else res();
+    }
+    requestAnimationFrame(step);
+  });
+}
+async function resolveScene(sc){
+  const mePath=sc.move==='vanster'
+    ? {ctrl:{x:325,y:275},to:{x:-90,y:275}}
+    : {ctrl:{x:325,y:160},to:{x:325,y:-90}};
+  const oPaths={right:{ctrl:{x:230,y:275},to:{x:-90,y:275}},left:{ctrl:{x:430,y:325},to:{x:690,y:325}},ahead:{ctrl:{x:275,y:470},to:{x:275,y:690}}};
+  const meGo=()=>drive(meEl,{x:mePos.x,y:mePos.y},mePath.ctrl,mePath.to,1700,0);
+  const otherGo=d=>otherEl?drive(otherEl,{x:otherPos.x,y:otherPos.y},oPaths[sc.other].ctrl,oPaths[sc.other].to,1500,d||0):Promise.resolve();
+  if(sc.sign==='stopp'){
+    await drive(meEl,{x:mePos.x,y:mePos.y},{x:325,y:430},{x:325,y:392},650,0);
+    mePos={x:325,y:392};
+    await new Promise(r=>setTimeout(r,750));
+    await meGo();
+  }else if(sc.other==='ahead'&&sc.move==='rakt'){
+    await Promise.all([meGo(),otherGo(0)]);
+  }else if(sc.answer==='kor'){
+    await Promise.all([meGo(),otherGo(900)]);
+  }else{
+    await Promise.all([otherGo(0),(async()=>{await new Promise(r=>setTimeout(r,1000));await meGo()})()]);
+  }
+}
+
+/* ---------- game flow ---------- */
+const $=id=>document.getElementById(id);
+const TMAX=4500,RING=163.4;
+let order=[],ri=0,score=0,nCorrect=0,tStart=0,raf=null,busy=true;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startGame(){
+  $('startOvl').classList.add('hidden');$('resOvl').classList.add('hidden');
+  order=shuffle([...SC]);ri=0;score=0;nCorrect=0;
+  $('score').textContent='0';
+  nextRound();
+}
+function nextRound(){
+  if(ri>=order.length)return finish();
+  const sc=order[ri];busy=false;
+  $('roundLbl').textContent=`INTERSECTION ${ri+1} / ${order.length}`;
+  $('verdictTxt').className='';$('verdictTxt').textContent='';
+  buildScene(sc);
+  $('task').innerHTML=(sc.sign==='utfart'?'You are pulling out of a car park. ':'')+
+    (sc.move==='vanster'?'You want to <b style="color:var(--gul)">turn left</b>.':'You are going <b style="color:var(--gul)">straight ahead</b>.')+
+    `<small>${sc.other==='right'?'A car is approaching from the right.':sc.other==='left'?'A car is approaching from the left.':sc.other==='ahead'?'An oncoming car is approaching head-on.':'No other cars visible.'}</small>`;
+  $('signHolder').innerHTML=`<svg viewBox="0 0 100 100" width="64" height="64">${SIGNS[sc.sign].svg}</svg>`;
+  $('signName').innerHTML=SIGNS[sc.sign].en+`<small>${SIGNS[sc.sign].sv}</small>`;
+  $('expl').innerHTML='The sign plus where the other cars are coming from decides.';
+  $('goBtn').disabled=false;$('waitBtn').disabled=false;
+  tStart=performance.now();tickRing();
+}
+function tickRing(){
+  cancelAnimationFrame(raf);
+  const step=()=>{
+    const left=1-(performance.now()-tStart)/TMAX;
+    $('tring').style.strokeDashoffset=RING*(1-Math.max(0,left));
+    $('tring').style.stroke=left<.3?'#E8344A':left<.6?'#FFCD00':'#3D8BFD';
+    if(left<=0&&!busy)return choose(null);
+    if(!busy)raf=requestAnimationFrame(step);
+  };raf=requestAnimationFrame(step);
+}
+async function choose(ans){
+  if(busy)return;busy=true;cancelAnimationFrame(raf);
+  $('goBtn').disabled=true;$('waitBtn').disabled=true;
+  const sc=order[ri];
+  const correct=ans===sc.answer;
+  let gain=0;
+  if(correct){
+    const left=Math.max(0,1-(performance.now()-tStart)/TMAX);
+    gain=100+Math.round(left*50);score+=gain;nCorrect++;
+  }
+  $('score').textContent=score;
+  const v=$('verdictTxt');
+  if(ans===null){v.textContent='TOO SLOW';v.style.color='var(--rod)'}
+  else if(correct){v.textContent=sc.answer==='kor'?'CORRECT — GO! +'+gain:'CORRECT — WAIT! +'+gain;v.style.color='var(--gron)'}
+  else{v.textContent='WRONG CALL';v.style.color='var(--rod)'}
+  v.classList.add('show');
+  $('expl').innerHTML=`<span class="tag ${correct?'ok':'bad'}">${correct?'✓ CORRECT':ans===null?'⏱ TIME UP':'✗ WRONG'}</span><br>${sc.expl}`;
+  setTimeout(()=>{v.classList.remove('show');v.textContent=''},1400);
+  await new Promise(r=>setTimeout(r,500));
+  await resolveScene(sc);
+  await new Promise(r=>setTimeout(r,2200));
+  ri++;nextRound();
+}
+function finish(){
+  busy=true;
+  $('rScore').textContent=score;
+  $('rAcc').textContent=nCorrect+'/'+order.length;
+  $('resTitle').textContent=nCorrect===order.length?'INTERSECTION KING! 👑':nCorrect>=9?'CONFIDENT AT INTERSECTIONS':nCorrect>=6?'ON THE RIGHT TRACK':'STUDY THE RIGHT-HAND RULE';
+  const badge=$('bestBadge');badge.innerHTML='';
+  const old=localStorage.getItem('br.intersection.best');
+  if(old==null||score>+old){localStorage.setItem('br.intersection.best',score);badge.innerHTML='<span class="newbest">★ NEW RECORD</span>'}
+  localStorage.setItem('br.plays',(+localStorage.getItem('br.plays')||0)+1);
+  $('resOvl').classList.remove('hidden');
+}
+$('goBtn').addEventListener('click',()=>choose('kor'));
+$('waitBtn').addEventListener('click',()=>choose('vanta'));
+addEventListener('keydown',e=>{
+  if(e.key==='g'||e.key==='G')choose('kor');
+  if(e.key==='w'||e.key==='W')choose('vanta');
+});
+$('startBtn').addEventListener('click',startGame);
+$('againBtn').addEventListener('click',startGame);
+buildScene(SC[0]);
+</script>
+</body>
+</html>

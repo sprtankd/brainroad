@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Scout — BrainRoad</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%231262B3' stroke='%23E0162B' stroke-width='9'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Spline+Sans+Mono:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#060B16;--line:rgba(170,200,255,.12);--ink:#EAF2FF;--dim:#8FA3C4;--faint:#5A6C8C;
+--gul:#FFCD00;--rod:#E8344A;--gron:#2BE8A4;--bla:#3D8BFD}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(1000px 700px at 50% -10%,#0E1E34 0%,var(--bg0) 55%) fixed,var(--bg0);
+color:var(--ink);font-family:'Familjen Grotesk',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+body::after{content:"";position:fixed;inset:0;z-index:90;pointer-events:none;opacity:.05;
+background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.7'/></svg>")}
+.aurora{position:fixed;border-radius:50%;filter:blur(95px);pointer-events:none;z-index:0;mix-blend-mode:screen}
+.a1{width:55vw;height:42vh;background:radial-gradient(ellipse,rgba(43,232,164,.18),transparent 70%);top:-12vh;left:-8vw;animation:dr 26s ease-in-out infinite alternate}
+.a2{width:46vw;height:36vh;background:radial-gradient(ellipse,rgba(61,139,253,.15),transparent 70%);bottom:-12vh;right:-8vw;animation:dr 34s ease-in-out infinite alternate-reverse}
+@keyframes dr{to{transform:translate(8vw,7vh) scale(1.15)}}
+#wrap{position:relative;z-index:2;max-width:900px;margin:0 auto;padding:18px clamp(14px,4vw,32px) 60px;display:flex;flex-direction:column;min-height:100vh}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.top a{color:var(--dim);text-decoration:none;font-size:14px}.top a:hover{color:var(--ink)}
+.hudr{font-family:'Spline Sans Mono',monospace;font-size:13px;color:var(--dim)}
+.hudr b{color:var(--gron);font-size:18px;font-weight:600}
+#targetBar{display:flex;align-items:center;gap:16px;border:1px solid var(--line);border-radius:18px;
+padding:12px 18px;background:linear-gradient(170deg,rgba(20,32,60,.85),rgba(10,17,33,.9));margin-bottom:16px}
+#targetSign{width:72px;height:72px;flex:none;filter:drop-shadow(0 0 22px rgba(43,232,164,.25)) drop-shadow(0 8px 18px rgba(0,0,0,.55))}
+#targetSign svg{width:100%;height:100%}
+#targetTxt .l{font-family:'Spline Sans Mono',monospace;font-size:10.5px;letter-spacing:.26em;color:var(--gron);text-transform:uppercase}
+#targetTxt .n{font-size:clamp(17px,2.6vw,23px);font-weight:700;margin-top:3px}
+#targetTxt .e{font-size:12px;color:var(--faint);font-family:'Spline Sans Mono',monospace}
+#roundLbl{margin-left:auto;text-align:right;font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--faint);letter-spacing:.18em}
+#roundLbl b{display:block;color:var(--ink);font-size:21px;letter-spacing:0}
+#grid{display:grid;gap:10px;flex:1;align-content:start}
+.cell{position:relative;cursor:pointer;border:1px solid var(--line);border-radius:14px;background:rgba(14,24,48,.55);
+aspect-ratio:1;padding:9%;transition:transform .14s,border-color .14s,box-shadow .14s;opacity:0;transform:scale(.7)}
+.cell.in{opacity:1;transform:scale(1)}
+.cell svg{width:100%;height:100%;display:block}
+.cell:hover{transform:translateY(-3px) scale(1.03);border-color:rgba(43,232,164,.45)}
+.cell.found{border-color:var(--gron);background:rgba(43,232,164,.16);box-shadow:0 0 34px rgba(43,232,164,.4);animation:foundPop .45s cubic-bezier(.2,1.5,.4,1)}
+@keyframes foundPop{40%{transform:scale(1.16)}}
+.cell.wrong{animation:shake .35s;border-color:var(--rod);opacity:.35;pointer-events:none}
+@keyframes shake{20%{transform:translateX(-6px)}45%{transform:translateX(5px)}70%{transform:translateX(-3px)}}
+.penal{position:fixed;font-family:'Spline Sans Mono',monospace;font-weight:700;color:var(--rod);font-size:17px;pointer-events:none;z-index:60;animation:rise 1s ease-out both}
+@keyframes rise{to{transform:translateY(-46px);opacity:0}}
+.ovl{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(4,7,14,.8);backdrop-filter:blur(10px);overflow:auto}
+.panel{max-width:620px;width:92vw;background:linear-gradient(170deg,#101B33,#0A111F);border:1px solid var(--line);border-radius:26px;padding:clamp(26px,4vw,46px);margin:4vh 0;text-align:center;box-shadow:0 40px 120px rgba(0,0,0,.6)}
+.kick{font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spacing:.34em;color:var(--gron);text-transform:uppercase}
+.panel h1{font-size:clamp(36px,6.4vw,58px);letter-spacing:-.03em;margin:12px 0 8px}
+.panel p{color:var(--dim);line-height:1.6;max-width:460px;margin:0 auto;font-size:15.5px}
+.panel p b{color:var(--ink)}
+.btn{display:inline-block;cursor:pointer;background:var(--gul);color:#14171D;border:4px solid #E0162B;border-radius:16px;
+font:700 17px 'Familjen Grotesk',sans-serif;padding:15px 36px;margin-top:26px;text-decoration:none;
+box-shadow:0 0 0 3px rgba(255,255,255,.1),0 12px 36px rgba(255,205,0,.25);transition:transform .15s}
+.btn:hover{transform:translateY(-2px) rotate(-.6deg)}
+.btn.ghost{background:transparent;color:var(--dim);border-color:var(--line);box-shadow:none;font-weight:400}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0 4px}
+.stat{border:1px solid var(--line);border-radius:14px;padding:16px 8px}
+.stat .v{font-family:'Spline Sans Mono',monospace;font-size:clamp(20px,3.6vw,30px);font-weight:700;color:var(--gron)}
+.stat .l{font-size:11px;color:var(--faint);letter-spacing:.13em;text-transform:uppercase;margin-top:5px;font-family:'Spline Sans Mono',monospace}
+.newbest{display:inline-block;background:rgba(43,232,164,.12);border:1px solid rgba(43,232,164,.4);color:var(--gron);border-radius:99px;padding:6px 16px;font-size:12.5px;font-family:'Spline Sans Mono',monospace;letter-spacing:.08em;margin-top:14px}
+.hidden{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="aurora a1"></div><div class="aurora a2"></div>
+<div id="wrap">
+  <div class="top">
+    <a href="index.html">← BrainRoad</a>
+    <div class="hudr">TIME <b id="clock">0.0s</b></div>
+  </div>
+  <div id="targetBar">
+    <div id="targetSign"></div>
+    <div id="targetTxt"><div class="l">Find the sign</div><div class="n" id="tName">—</div><div class="e" id="tEn"></div></div>
+    <div id="roundLbl">ROUND<b id="rN">—</b></div>
+  </div>
+  <div id="grid"></div>
+</div>
+
+<div class="ovl" id="startOvl">
+  <div class="panel">
+    <div class="kick">Visual attention · 8 rounds</div>
+    <h1>THE SCOUT</h1>
+    <p>One sign is wanted — find it in the crowd, <b>as fast as you can</b>. The wall grows every round, and soon <b>mirror-flipped copies</b> sneak in. Just like on real roads: an almost-right sign is always a wrong sign.</p>
+    <p style="margin-top:12px;font-size:13px;color:var(--faint)">Wrong clicks cost +1 second. Fastest average time wins.</p>
+    <button class="btn" id="startBtn">START SCOUTING</button>
+  </div>
+</div>
+
+<div class="ovl hidden" id="resOvl">
+  <div class="panel">
+    <div class="kick">Results</div>
+    <h1 id="resTitle">SHARP EYE!</h1>
+    <div class="statgrid">
+      <div class="stat"><div class="v" id="rAvg">—</div><div class="l">avg / sign</div></div>
+      <div class="stat"><div class="v" id="rTot">—</div><div class="l">total time</div></div>
+      <div class="stat"><div class="v" id="rMiss">0</div><div class="l">wrong clicks</div></div>
+    </div>
+    <div id="bestBadge"></div>
+    <p style="margin-top:14px;font-size:13.5px" id="resNote"></p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" id="againBtn">SCOUT AGAIN</button>
+      <a class="btn ghost" href="index.html">BACK TO MENU</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- sign library ---------- */
+const PIKT='#161A21',GUL='#FFCD00',ROD='#E0162B',BLA='#1262B3',VIT='#F4F6F8';
+const tri=p=>`<polygon points="50,8 94,84 6,84" fill="${GUL}" stroke="${ROD}" stroke-width="8" stroke-linejoin="round"/>${p}`;
+const ring=(fill,p)=>`<circle cx="50" cy="50" r="44" fill="${fill}" stroke="${ROD}" stroke-width="9"/>${p}`;
+const bcirc=p=>`<circle cx="50" cy="50" r="46" fill="${BLA}" stroke="${VIT}" stroke-width="3"/>${p}`;
+const bsq=p=>`<rect x="6" y="6" width="88" height="88" rx="10" fill="${BLA}" stroke="${VIT}" stroke-width="3"/>${p}`;
+const carF=(x,y,c)=>`<g transform="translate(${x} ${y})" fill="${c}"><rect x="3" y="0" width="14" height="9" rx="3.5"/><rect x="0" y="6" width="20" height="15" rx="4"/></g>`;
+const rArc=a=>`<g transform="rotate(${a} 50 50)"><path d="M72.5 37 A26 26 0 0 0 50 24" fill="none" stroke="#fff" stroke-width="7"/><polygon points="36,24 50,16 50,31" fill="#fff"/></g>`;
+const spd=n=>ring(GUL,`<text x="50" y="63" text-anchor="middle" font-size="38" font-weight="700" font-family="'Familjen Grotesk',sans-serif" fill="${PIKT}">${n}</text>`);
+const MOOSE_P=`<g fill="${PIKT}" stroke="${PIKT}" stroke-width="1.5" stroke-linejoin="round"><path d="M22 48 L22 44 L30 42 L34 43 L42 55 L66 55 L70 58 L69 64 L69 78 L65 78 L65 64 L59 64 L59 78 L55 78 L55 63 L47 63 L47 78 L43 78 L43 63 L39 60 L34 52 L28 52 Z"/><path d="M31 42 L29 30 L33 31 L34.5 37 L36 30 L40 31 L37 43 Z"/></g>`;
+const SIGNS={
+ alg:{en:'Moose crossing',sv:'Moose',svg:tri(MOOSE_P)},
+ barn:{en:'Children',sv:'Children',svg:tri(`<g fill="${PIKT}"><circle cx="41" cy="38" r="5.5"/><path d="M38 45 L46 47 L45 56 L53 62 L50 67 L42 60 L38 65 L31 77 L26 74 L34 61 L35 53 L30 57 L25 52 L33 44 Z"/><circle cx="63" cy="47" r="4.5"/><path d="M60 53 L67 55 L66 62 L71 67 L68 71 L62 65 L57 77 L52 75 L58 62 Z"/></g>`)},
+ halka:{en:'Slippery road',sv:'Slippery',svg:tri(`<g><path d="M28 80 Q35 70 28 61 Q22 53 30 46" fill="none" stroke="${PIKT}" stroke-width="3.5"/><path d="M42 80 Q49 70 42 61 Q36 53 44 46" fill="none" stroke="${PIKT}" stroke-width="3.5"/><g transform="rotate(20 61 58)"><rect x="51" y="40" width="21" height="36" rx="6" fill="${PIKT}"/><rect x="55" y="49" width="13" height="11" rx="2" fill="${GUL}"/></g></g>`)},
+ gangare_v:{en:'Crossing ahead',sv:'Crossing ahead',svg:tri(`<g fill="${PIKT}"><circle cx="50" cy="36" r="5.5"/><path d="M45 43 L55 43 L57 57 L61 73 L55 74 L51 60 L47 74 L41 73 L45 57 Z"/><rect x="27" y="77" width="11" height="4.5"/><rect x="44" y="77" width="11" height="4.5"/><rect x="61" y="77" width="11" height="4.5"/></g>`)},
+ cykel:{en:'Cyclists',sv:'Cyclists',svg:tri(`<g fill="none" stroke="${PIKT}" stroke-width="3.5" stroke-linecap="round"><circle cx="33" cy="67" r="10"/><circle cx="67" cy="67" r="10"/><path d="M33 67 L44 49 L61 49 L67 67 M44 49 L51 67 L33 67"/><path d="M58 44 L66 44 M40 45 L48 45"/></g>`)},
+ vagarbete:{en:'Roadworks',sv:'Roadworks',svg:tri(`<g fill="${PIKT}"><path d="M22 81 Q40 70 58 77 L78 81 Z"/><circle cx="45" cy="38" r="5.5"/><path d="M41 45 L49 44 L54 54 L50 59 L49 78 L44 78 L44 60 L38 56 Z"/><path d="M52 50 L68 68" stroke="${PIKT}" stroke-width="3.5"/><path d="M64 64 L73 70 L67 77 Z"/></g>`)},
+ annan_fara:{en:'Other danger',sv:'Other danger',svg:tri(`<g fill="${PIKT}"><rect x="46.5" y="32" width="7" height="29" rx="3.5"/><circle cx="50" cy="71" r="4.5"/></g>`)},
+ vajning:{en:'Give way',sv:'Give way',svg:`<polygon points="7,16 93,16 50,90" fill="${GUL}" stroke="${ROD}" stroke-width="8" stroke-linejoin="round"/>`},
+ stopp:{en:'Stop',sv:'Stop',svg:`<polygon points="92.5,67.6 67.6,92.5 32.4,92.5 7.5,67.6 7.5,32.4 32.4,7.5 67.6,7.5 92.5,32.4" fill="${ROD}" stroke="${VIT}" stroke-width="5" stroke-linejoin="round"/><text x="50" y="59" text-anchor="middle" font-family="'Familjen Grotesk',sans-serif" font-size="24" font-weight="700" fill="#fff" letter-spacing="1">STOP</text>`},
+ huvudled:{en:'Priority road',sv:'Priority road',svg:`<g transform="rotate(45 50 50)"><rect x="23" y="23" width="54" height="54" rx="7" fill="${VIT}"/><rect x="32" y="32" width="36" height="36" rx="4" fill="${GUL}"/></g>`},
+ mote:{en:'Oncoming yields',sv:'Oncoming yields',svg:bsq(`<path d="M62 76 L62 30" stroke="#fff" stroke-width="8" stroke-linecap="round"/><polygon points="62,16 52,33 72,33" fill="#fff"/><path d="M38 24 L38 66" stroke="${ROD}" stroke-width="7" stroke-linecap="round"/><polygon points="38,80 29,63 47,63" fill="${ROD}"/>`)},
+ fart30:{en:'Speed 30',sv:'Speed 30',svg:spd(30)},
+ fart50:{en:'Speed 50',sv:'Speed 50',svg:spd(50)},
+ fart70:{en:'Speed 70',sv:'Speed 70',svg:spd(70)},
+ fart90:{en:'Speed 90',sv:'Speed 90',svg:spd(90)},
+ infart:{en:'No entry',sv:'No entry',svg:`<circle cx="50" cy="50" r="46" fill="${ROD}"/><rect x="20" y="43.5" width="60" height="13" rx="3" fill="#fff"/>`},
+ omkorning:{en:'No overtaking',sv:'No overtaking',svg:ring(GUL,carF(26,37,ROD)+carF(55,37,PIKT))},
+ p_forbud:{en:'No parking',sv:'No parking',svg:`<circle cx="50" cy="50" r="44" fill="${BLA}" stroke="${ROD}" stroke-width="9"/><line x1="80" y1="20" x2="20" y2="80" stroke="${ROD}" stroke-width="9"/>`},
+ stanna_forbud:{en:'No stopping',sv:'No stopping',svg:`<circle cx="50" cy="50" r="44" fill="${BLA}" stroke="${ROD}" stroke-width="9"/><line x1="80" y1="20" x2="20" y2="80" stroke="${ROD}" stroke-width="9"/><line x1="20" y1="20" x2="80" y2="80" stroke="${ROD}" stroke-width="9"/>`},
+ hoger:{en:'Mandatory right',sv:'Mandatory right',svg:bcirc(`<path d="M24 50 L56 50" stroke="#fff" stroke-width="9" stroke-linecap="round"/><polygon points="76,50 52,36 52,64" fill="#fff"/>`)},
+ cirkulation:{en:'Roundabout',sv:'Roundabout',svg:bcirc(rArc(0)+rArc(120)+rArc(240))},
+ motorvag:{en:'Motorway',sv:'Motorway',svg:bsq(`<g stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round"><path d="M39 80 L43 26 M61 80 L57 26"/></g><path d="M20 46 L80 46" stroke="#fff" stroke-width="6"/><path d="M27 46 L27 36 M73 46 L73 36" stroke="#fff" stroke-width="5"/>`)},
+ overgang_b:{en:'Pedestrian crossing',sv:'Pedestrian crossing',svg:bsq(`<polygon points="50,16 87,82 13,82" fill="#fff"/><g fill="${PIKT}"><circle cx="50" cy="42" r="4.5"/><path d="M46 48 L54 48 L56 60 L59 72 L54 73 L51 62 L48 73 L43 72 L46 60 Z"/><rect x="33" y="75" width="8" height="4"/><rect x="46" y="75" width="8" height="4"/><rect x="59" y="75" width="8" height="4"/></g>`)}
+};
+const IDS=Object.keys(SIGNS);
+const ASYM=['alg','halka','hoger','vagarbete','cykel','mote','barn'];
+const sigSVG=(id,mir)=>`<svg viewBox="0 0 100 100">${mir?`<g transform="translate(100 0) scale(-1 1)">${SIGNS[id].svg}</g>`:SIGNS[id].svg}</svg>`;
+
+/* ---------- game ---------- */
+const ROUNDS=[[3,3],[4,3],[4,4],[5,4],[5,5],[6,5],[6,6],[7,6]];
+const $=id=>document.getElementById(id);
+let ri=0,times=[],misses=0,t0=0,clockRaf=null,active=false,totalPenal=0;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startGame(){
+  $('startOvl').classList.add('hidden');$('resOvl').classList.add('hidden');
+  ri=0;times=[];misses=0;totalPenal=0;
+  nextRound();
+}
+function nextRound(){
+  if(ri>=ROUNDS.length)return finish();
+  const [cols,rows]=ROUNDS[ri];
+  const n=cols*rows;
+  const target=ri>=3?ASYM[Math.floor(Math.random()*ASYM.length)]:IDS[Math.floor(Math.random()*IDS.length)];
+  $('rN').textContent=(ri+1)+' / '+ROUNDS.length;
+  $('targetSign').innerHTML=sigSVG(target,false);
+  $('tName').textContent=SIGNS[target].en;
+  $('tEn').textContent='// '+SIGNS[target].sv;
+  const cells=[{id:target,mir:false,hit:true}];
+  const decoyPool=shuffle(IDS.filter(x=>x!==target));
+  for(let i=1;i<n;i++){
+    if(ri>=3&&ASYM.includes(target)&&Math.random()<.3){
+      cells.push({id:target,mir:true,hit:false});
+    }else{
+      cells.push({id:decoyPool[i%decoyPool.length],mir:false,hit:false});
+    }
+  }
+  shuffle(cells);
+  const grid=$('grid');
+  grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  grid.innerHTML='';
+  cells.forEach((c,i)=>{
+    const d=document.createElement('button');
+    d.className='cell';
+    d.innerHTML=sigSVG(c.id,c.mir);
+    d.addEventListener('click',e=>clickCell(d,c,e));
+    grid.appendChild(d);
+    setTimeout(()=>d.classList.add('in'),i*16);
+  });
+  active=true;t0=performance.now();runClock();
+}
+function runClock(){
+  cancelAnimationFrame(clockRaf);
+  const step=()=>{
+    if(!active)return;
+    $('clock').textContent=(((performance.now()-t0)+0)/1000).toFixed(1)+'s';
+    clockRaf=requestAnimationFrame(step);
+  };clockRaf=requestAnimationFrame(step);
+}
+function clickCell(el,c,e){
+  if(!active)return;
+  if(c.hit){
+    active=false;cancelAnimationFrame(clockRaf);
+    const dt=performance.now()-t0;
+    times.push(dt);
+    el.classList.add('found');
+    document.querySelectorAll('.cell').forEach(x=>{if(x!==el)x.style.opacity=.35});
+    setTimeout(()=>{ri++;nextRound()},760);
+  }else{
+    misses++;totalPenal+=1000;t0-=1000;
+    el.classList.add('wrong');
+    const p=document.createElement('div');p.className='penal';p.textContent='+1s';
+    p.style.left=(e.clientX-14)+'px';p.style.top=(e.clientY-30)+'px';
+    document.body.appendChild(p);setTimeout(()=>p.remove(),1000);
+  }
+}
+function finish(){
+  active=false;
+  const avg=times.reduce((a,b)=>a+b,0)/times.length;
+  const tot=times.reduce((a,b)=>a+b,0);
+  $('rAvg').textContent=(avg/1000).toFixed(2)+'s';
+  $('rTot').textContent=(tot/1000).toFixed(1)+'s';
+  $('rMiss').textContent=misses;
+  $('resTitle').textContent=avg<1600&&misses===0?'HAWK EYES! 🦅':avg<2300?'SHARP EYE':avg<3300?'STEADY SEARCH':'MORE COFFEE, MORE FOCUS';
+  const badge=$('bestBadge');badge.innerHTML='';
+  const old=localStorage.getItem('br.scout.best');
+  if(old==null||avg<+old){localStorage.setItem('br.scout.best',Math.round(avg));badge.innerHTML='<span class="newbest">★ NEW RECORD</span>'}
+  localStorage.setItem('br.plays',(+localStorage.getItem('br.plays')||0)+1);
+  $('resNote').textContent=misses>0?'The mirror-flipped signs caught you '+misses+' time(s) — on real roads, an almost-right sign is always a wrong sign.':'Not a single wrong click — that eye will spot the sign even in a busy city.';
+  $('resOvl').classList.remove('hidden');
+}
+$('startBtn').addEventListener('click',startGame);
+$('againBtn').addEventListener('click',startGame);
+</script>
+</body>
+</html>

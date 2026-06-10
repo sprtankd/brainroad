@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brake! — BrainRoad</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,8 94,84 6,84' fill='%23FFCD00' stroke='%23E0162B' stroke-width='8' stroke-linejoin='round'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Spline+Sans+Mono:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#060B16;--ink:#EAF2FF;--dim:#8FA3C4;--faint:#5A6C8C;--gul:#FFCD00;--rod:#E8344A;--gron:#2BE8A4;--line:rgba(170,200,255,.12)}
+*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-user-select:none}
+body{background:var(--bg0);color:var(--ink);font-family:'Familjen Grotesk',system-ui,sans-serif;overflow:hidden;height:100vh}
+.mono{font-family:'Spline Sans Mono',monospace}
+
+/* ---------- SCENE ---------- */
+#scene{position:fixed;inset:0;cursor:pointer;overflow:hidden;
+  background:linear-gradient(180deg,#05080F 0%,#0A1326 38%,#101B33 55%,#0B1322 62%)}
+.aur{position:absolute;width:80vw;height:34vh;top:-6vh;left:8vw;border-radius:50%;filter:blur(80px);mix-blend-mode:screen;
+  background:radial-gradient(ellipse,rgba(43,232,164,.35),rgba(61,139,253,.15) 55%,transparent 75%);animation:aur 18s ease-in-out infinite alternate}
+@keyframes aur{to{transform:translateX(-9vw) scaleY(1.3) rotate(-3deg)}}
+#stars{position:absolute;inset:0}
+.treeline{position:absolute;bottom:34%;left:0;width:100%;height:30%;}
+#roadwrap{position:absolute;left:0;right:0;bottom:0;height:66%;perspective:430px;overflow:hidden}
+#road{position:absolute;left:50%;bottom:-12%;width:min(560px,86vw);height:150%;transform:translateX(-50%) rotateX(55deg);transform-origin:50% 100%;
+  background:linear-gradient(180deg,#0D1424 0%,#1A2438 50%,#27334D 100%);
+  border-left:14px solid #2E3C58;border-right:14px solid #2E3C58}
+#road .mid{position:absolute;left:50%;top:-118px;width:18px;height:120%;margin-left:-9px;
+  background:repeating-linear-gradient(180deg,#FFD34D 0 56px,transparent 56px 128px)}
+#scene.driving #road .mid{animation:dash .8s linear infinite}
+@keyframes dash{to{transform:translateY(128px)}}
+#headlight{position:absolute;left:50%;bottom:0;width:120vw;height:46%;transform:translateX(-50%);
+  background:radial-gradient(ellipse 42% 100% at 50% 100%,rgba(255,236,170,.13),transparent 70%);pointer-events:none}
+#snow{position:absolute;inset:0;pointer-events:none}
+#vignette{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 28vw 6vw rgba(2,4,9,.85)}
+#flash{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 60%,transparent 30%,rgba(232,52,74,.5));transition:opacity .12s}
+
+/* traffic light */
+#lampPost{position:absolute;right:12%;bottom:38%;width:46px;z-index:6;filter:drop-shadow(0 8px 16px rgba(0,0,0,.6))}
+.lamp{transition:fill .1s}
+#lampGlow{position:absolute;right:calc(12% - 30px);bottom:calc(38% + 48px);width:100px;height:100px;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .15s;z-index:5}
+
+/* hazard stage */
+#stage{position:absolute;inset:0;z-index:7;pointer-events:none}
+.hz{position:absolute;will-change:transform,opacity}
+.hz svg{display:block;filter:drop-shadow(0 10px 24px rgba(0,0,0,.7))}
+@keyframes mooseIn{from{transform:translateX(-46vw)}to{transform:translateX(0)}}
+@keyframes walkerIn{from{transform:translateX(46vw)}to{transform:translateX(0)}}
+@keyframes carBrake{0%{opacity:0;transform:scale(.92)}18%{opacity:1;transform:scale(1)}100%{opacity:1;transform:scale(1)}}
+@keyframes passLeft{from{transform:translate(-6vw,-2vh) scale(.35);opacity:0}12%{opacity:1}to{transform:translate(-34vw,30vh) scale(2.1);opacity:1}}
+@keyframes passRight{from{transform:translate(4vw,-3vh) scale(.3);opacity:0}12%{opacity:1}to{transform:translate(26vw,32vh) scale(2.2);opacity:1}}
+@keyframes gallop{50%{transform:translateY(-6px)}}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:18px clamp(16px,4vw,40px);z-index:20;pointer-events:none}
+#hud a{pointer-events:auto;color:var(--dim);text-decoration:none;font-size:14px;letter-spacing:.04em}
+#hud a:hover{color:var(--ink)}
+#roundLbl{font-family:'Spline Sans Mono',monospace;font-size:12px;letter-spacing:.3em;color:var(--faint)}
+#speedo{display:flex;align-items:baseline;gap:6px;font-family:'Spline Sans Mono',monospace;color:var(--dim);font-size:13px}
+#speedo b{font-size:24px;color:var(--ink);font-weight:600}
+
+/* center message */
+#msg{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);text-align:center;z-index:25;pointer-events:none;width:92vw}
+#msg .big{font-size:clamp(40px,8vw,86px);font-weight:700;letter-spacing:-.03em;line-height:1;text-shadow:0 10px 50px rgba(0,0,0,.8)}
+#msg .sub{margin-top:12px;color:var(--dim);font-size:clamp(14px,2vw,18px)}
+.ok{color:var(--gron)}.bad{color:var(--rod)}.gul{color:var(--gul)}
+.pulse{animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:translate(-50%,-50%) scale(.6);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+
+/* ---------- OVERLAYS ---------- */
+.ovl{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(4,7,14,.78);backdrop-filter:blur(10px);overflow:auto}
+.panel{max-width:680px;width:92vw;background:linear-gradient(170deg,#101B33,#0A111F);border:1px solid var(--line);border-radius:26px;padding:clamp(26px,4vw,48px);margin:4vh 0;text-align:center;box-shadow:0 40px 120px rgba(0,0,0,.6)}
+.kick{font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spacing:.34em;color:var(--rod);text-transform:uppercase}
+.panel h1{font-size:clamp(40px,7vw,68px);letter-spacing:-.03em;margin:12px 0 6px}
+.panel p.lede{color:var(--dim);line-height:1.6;max-width:480px;margin:10px auto 0;font-size:15.5px}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:26px 0;text-align:left}
+.rule{border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:13.5px;color:var(--dim);line-height:1.5}
+.rule b{display:block;color:var(--ink);font-size:14.5px;margin-bottom:3px}
+.rule.go b{color:var(--gron)}.rule.stop b{color:var(--rod)}
+.btn{display:inline-block;cursor:pointer;background:var(--gul);color:#14171D;border:4px solid #E0162B;border-radius:16px;
+  font:700 17px 'Familjen Grotesk',sans-serif;padding:15px 36px;letter-spacing:.02em;text-decoration:none;
+  box-shadow:0 0 0 3px rgba(255,255,255,.1),0 12px 36px rgba(255,205,0,.25);transition:transform .15s}
+.btn:hover{transform:translateY(-2px) rotate(-.6deg)}
+.btn.ghost{background:transparent;color:var(--dim);border-color:var(--line);box-shadow:none;font-weight:400}
+.btn.ghost:hover{color:var(--ink)}
+.keyhint{margin-top:18px;font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:var(--faint);letter-spacing:.1em}
+kbd{border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:2px 9px;font-family:inherit;background:#121D36;color:var(--ink)}
+
+/* results */
+#resPanel h1{margin-bottom:0}
+.bigstat{font-family:'Spline Sans Mono',monospace;font-size:clamp(54px,9vw,92px);font-weight:700;color:var(--gul);line-height:1;margin:18px 0 2px;text-shadow:0 0 50px rgba(255,205,0,.3)}
+.bigstat small{font-size:20px;color:var(--dim)}
+#rating{font-size:19px;margin:6px 0 20px}
+.bars{display:flex;flex-direction:column;gap:7px;margin:18px auto;max-width:440px;text-align:left}
+.bar{display:flex;align-items:center;gap:10px;font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:var(--faint)}
+.bar .track{flex:1;height:14px;border-radius:7px;background:#101A30;overflow:hidden}
+.bar .fill{height:100%;border-radius:7px;background:linear-gradient(90deg,var(--gron),var(--gul));width:0;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.bar.err .fill{background:var(--rod)}
+.bar .v{width:88px;text-align:right;color:var(--dim)}
+.dist{margin:20px auto 8px;max-width:440px;border:1px dashed var(--line);border-radius:14px;padding:16px 18px;text-align:left}
+.dist h4{font-size:14px;margin-bottom:9px;color:var(--ink)}
+.dist h4 span{color:var(--faint);font-weight:400;font-size:12px}
+.drow{display:flex;justify-content:space-between;font-family:'Spline Sans Mono',monospace;font-size:12.5px;color:var(--dim);padding:3px 0}
+.drow b{color:var(--gul);font-weight:600}
+.newbest{display:inline-block;background:rgba(43,232,164,.12);border:1px solid rgba(43,232,164,.4);color:var(--gron);border-radius:99px;padding:6px 16px;font-size:12.5px;font-family:'Spline Sans Mono',monospace;letter-spacing:.08em;margin-bottom:14px}
+.hidden{display:none!important}
+@media(max-width:560px){.rules{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+
+<div id="scene">
+  <div class="aur"></div>
+  <canvas id="stars"></canvas>
+  <svg class="treeline" viewBox="0 0 1200 200" preserveAspectRatio="none">
+    <path d="M0 200 L0 120 L30 120 L44 60 L60 120 L90 120 L104 84 L118 120 L200 120 L216 40 L234 120 L300 120 L312 88 L326 120 L430 120 L446 55 L462 120 L560 120 L572 92 L586 120 L700 120 L716 48 L732 120 L820 120 L834 86 L848 120 L950 120 L968 36 L986 120 L1080 120 L1092 90 L1104 120 L1200 120 L1200 200 Z" fill="#070D19"/>
+  </svg>
+  <div id="roadwrap"><div id="road"><div class="mid"></div></div></div>
+  <div id="headlight"></div>
+  <div id="lampGlow"></div>
+  <svg id="lampPost" viewBox="0 0 46 150">
+    <rect x="20" y="60" width="6" height="90" rx="3" fill="#39455E"/>
+    <rect x="6" y="0" width="34" height="64" rx="9" fill="#11161F" stroke="#2E3C58" stroke-width="2"/>
+    <circle id="lr" class="lamp" cx="23" cy="13" r="7.5" fill="#3A1218"/>
+    <circle id="la" class="lamp" cx="23" cy="32" r="7.5" fill="#3A2F12"/>
+    <circle id="lg" class="lamp" cx="23" cy="51" r="7.5" fill="#1F8A5C"/>
+  </svg>
+  <div id="stage"></div>
+  <canvas id="snow"></canvas>
+  <div id="vignette"></div>
+  <div id="flash"></div>
+</div>
+
+<div id="hud">
+  <a href="index.html">← BrainRoad</a>
+  <span id="roundLbl"></span>
+  <span id="speedo"><b id="kmh">90</b> km/h</span>
+</div>
+
+<div id="msg"></div>
+
+<!-- START -->
+<div class="ovl" id="startOvl">
+  <div class="panel">
+    <div class="kick">Reaction + impulse control</div>
+    <h1>BRAKE!</h1>
+    <p class="lede">You're driving at night through Swedish forest at 90 km/h. When a <b style="color:var(--ink)">real hazard</b> appears — brake immediately. But not everything that moves is dangerous. Panic-brake for no reason and it'll cost you.</p>
+    <div class="rules">
+      <div class="rule go"><b>🦌 BRAKE for</b>Moose on road · red light · pedestrian · car ahead braking hard</div>
+      <div class="rule stop"><b>✋ DON'T BRAKE for</b>Oncoming car in its own lane · road sign passing by</div>
+      <div class="rule"><b>9 rounds</b>Reaction time measured in milliseconds — average calculated on real hazards only</div>
+      <div class="rule"><b>False start = void round</b>Brake before anything happens and the round doesn't count</div>
+    </div>
+    <button class="btn" id="startBtn">START ENGINE</button>
+    <div class="keyhint">BRAKE = <kbd>SPACE</kbd> or tap anywhere on screen</div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="ovl hidden" id="resOvl">
+  <div class="panel" id="resPanel">
+    <div class="kick">Results</div>
+    <div class="bigstat" id="avgStat">— <small>ms</small></div>
+    <div id="bestBadge"></div>
+    <div id="rating"></div>
+    <div class="bars" id="bars"></div>
+    <div class="dist" id="dist"></div>
+    <p class="lede" id="resNote" style="font-size:13px"></p>
+    <div style="margin-top:22px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" id="againBtn">GO AGAIN</button>
+      <a class="btn ghost" href="index.html">BACK TO MENU</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- ambience: stars + snow ---------- */
+const stC=document.getElementById('stars'),stX=stC.getContext('2d');
+const snC=document.getElementById('snow'),snX=snC.getContext('2d');
+let W,H;function rs(){W=innerWidth;H=innerHeight;stC.width=snC.width=W;stC.height=snC.height=H;drawStars()}
+function drawStars(){stX.clearRect(0,0,W,H);for(let i=0;i<130;i++){stX.globalAlpha=Math.random()*.7+.1;stX.fillStyle='#DCE8FF';stX.fillRect(Math.random()*W,Math.random()*H*.32,1.4,1.4)}stX.globalAlpha=1}
+rs();addEventListener('resize',rs);
+const flakes=Array.from({length:90},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.7+.5,s:Math.random()*1.2+.5,p:Math.random()*6.28}));
+(function snow(){snX.clearRect(0,0,W,H);snX.fillStyle='#EBF2FF';for(const f of flakes){f.y+=f.s;f.x+=Math.sin(f.p+=.012)*.4;if(f.y>H){f.y=-4;f.x=Math.random()*W}snX.globalAlpha=.16+f.r*.16;snX.beginPath();snX.arc(f.x,f.y,f.r,0,6.28);snX.fill()}snX.globalAlpha=1;requestAnimationFrame(snow)})();
+
+/* ---------- hazard art ---------- */
+const MOOSE=`<svg viewBox="0 0 100 70" width="190"><g fill="#0B0E14" stroke="#0B0E14" stroke-width="1.5" stroke-linejoin="round"><path d="M10 28 L10 22 L22 19 L28 21 L40 36 L74 36 L80 40 L79 48 L79 68 L72 68 L72 49 L62 49 L62 68 L55 68 L55 47 L44 47 L44 68 L37 68 L37 47 L31 42 L24 32 L14 32 Z"/><path d="M24 19 L21 2 L27 3.5 L29 12 L31.5 2 L38 3.5 L33 20 Z"/></g><ellipse cx="46" cy="69" rx="34" ry="2.5" fill="rgba(0,0,0,.5)"/></svg>`;
+const WALKER=`<svg viewBox="0 0 60 90" width="84"><g fill="#0B0E14"><circle cx="30" cy="12" r="9"/><path d="M22 24 L38 24 L42 48 L52 66 L44 70 L34 52 L28 72 L36 86 L28 90 L18 74 L22 52 L14 60 L6 54 L18 38 Z"/></g></svg>`;
+const CARBRAKE=`<svg viewBox="0 0 120 80" width="170"><g><rect x="10" y="14" width="100" height="52" rx="14" fill="#0D1119" stroke="#1C2433" stroke-width="2"/><rect x="24" y="4" width="72" height="26" rx="10" fill="#0A0D14"/><rect x="30" y="8" width="60" height="16" rx="7" fill="#1A2335"/><rect class="bl" x="14" y="42" width="22" height="13" rx="5" fill="#FF2438"/><rect class="bl" x="84" y="42" width="22" height="13" rx="5" fill="#FF2438"/><rect x="46" y="58" width="28" height="9" rx="3" fill="#222C42"/></g></svg>`;
+const ONCOMING=`<svg viewBox="0 0 120 80" width="120"><g><rect x="10" y="14" width="100" height="52" rx="14" fill="#0D1119" stroke="#1C2433" stroke-width="2"/><rect x="24" y="4" width="72" height="26" rx="10" fill="#0A0D14"/><circle cx="26" cy="48" r="10" fill="#FFF3C4"/><circle cx="94" cy="48" r="10" fill="#FFF3C4"/><circle cx="26" cy="48" r="17" fill="rgba(255,243,196,.25)"/><circle cx="94" cy="48" r="17" fill="rgba(255,243,196,.25)"/></g></svg>`;
+const SIGNPASS=`<svg viewBox="0 0 100 150" width="86"><polygon points="50,6 94,82 6,82" fill="#FFCD00" stroke="#E0162B" stroke-width="8" stroke-linejoin="round"/><g fill="#161A21"><circle cx="50" cy="36" r="5"/><path d="M46 43 L54 43 L56 56 L60 70 L55 71 L51 58 L48 71 L43 70 L46 56 Z"/></g><rect x="46" y="84" width="8" height="66" rx="4" fill="#39455E"/></svg>`;
+
+/* ---------- game state ---------- */
+const scene=document.getElementById('scene'),stage=document.getElementById('stage'),msg=document.getElementById('msg'),
+flash=document.getElementById('flash'),roundLbl=document.getElementById('roundLbl'),kmh=document.getElementById('kmh'),
+lr=document.getElementById('lr'),la=document.getElementById('la'),lg=document.getElementById('lg'),lampGlow=document.getElementById('lampGlow');
+let state='idle';
+let rounds=[],ri=0,t0=0,results=[],timers=[];
+const GO=[
+ {id:'moose',  desc:'Moose on the road!',spawn:spawnMoose},
+ {id:'red',    desc:'Red light!',         spawn:spawnRed},
+ {id:'walker', desc:'Pedestrian!',        spawn:spawnWalker},
+ {id:'brake',  desc:'Car ahead braking hard!',spawn:spawnBrake}
+];
+const NOGO=[
+ {id:'oncoming',desc:'an oncoming car — in its own lane',spawn:spawnOncoming},
+ {id:'sign',    desc:'a road sign passing by',spawn:spawnSign}
+];
+function makeRounds(){
+  const types=['go','go','go','go','go','go','nogo','nogo','nogo'];
+  for(let i=types.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[types[i],types[j]]=[types[j],types[i]]}
+  const goPool=[...GO,...GO].sort(()=>Math.random()-.5);
+  return types.map(t=>t==='go'?{kind:'go',ev:goPool.pop()}:{kind:'nogo',ev:NOGO[Math.floor(Math.random()*NOGO.length)]});
+}
+function clearTimers(){timers.forEach(clearTimeout);timers=[]}
+function later(fn,ms){timers.push(setTimeout(fn,ms))}
+function setMsg(html){msg.innerHTML=html;msg.classList.remove('pulse');void msg.offsetWidth;msg.classList.add('pulse')}
+function clearStage(){stage.innerHTML='';flash.style.opacity=0;setLight('g')}
+function setLight(which){
+  lr.setAttribute('fill',which==='r'?'#FF2438':'#3A1218');
+  la.setAttribute('fill',which==='a'?'#FFC53D':'#3A2F12');
+  lg.setAttribute('fill',which==='g'?'#2BE85C':'#143A26');
+  lampGlow.style.opacity=which==='r'?1:0;
+  lampGlow.style.background=which==='r'?'radial-gradient(circle,rgba(255,36,56,.55),transparent 70%)':'none';
+}
+
+/* ---------- spawners ---------- */
+function place(html,css){const d=document.createElement('div');d.className='hz';d.innerHTML=html;Object.assign(d.style,css);stage.appendChild(d);return d}
+function spawnMoose(){const d=place(MOOSE,{left:'50%',bottom:'30%',marginLeft:'-220px'});d.style.animation='mooseIn .85s cubic-bezier(.25,.9,.35,1) both';d.querySelector('g').style.animation='gallop .4s ease-in-out 3';flash.style.opacity=1}
+function spawnWalker(){const d=place(WALKER,{left:'50%',bottom:'31%',marginLeft:'60px'});d.style.animation='walkerIn .8s cubic-bezier(.25,.9,.35,1) both';flash.style.opacity=1}
+function spawnBrake(){const d=place(CARBRAKE,{left:'50%',bottom:'33%',marginLeft:'-85px'});d.style.animation='carBrake .5s ease-out both';
+  const pulse=()=>{d.querySelectorAll('.bl').forEach(b=>{b.style.filter='drop-shadow(0 0 14px #FF2438)'})};pulse();flash.style.opacity=1}
+function spawnRed(){setLight('r');flash.style.opacity=1}
+function spawnOncoming(){const d=place(ONCOMING,{left:'38%',top:'42%'});d.style.animation='passLeft 1.9s ease-in both'}
+function spawnSign(){const d=place(SIGNPASS,{left:'62%',top:'40%'});d.style.animation='passRight 2s ease-in both'}
+
+/* ---------- flow ---------- */
+function startGame(){
+  document.getElementById('startOvl').classList.add('hidden');
+  document.getElementById('resOvl').classList.add('hidden');
+  rounds=makeRounds();ri=0;results=[];
+  scene.classList.add('driving');
+  nextRound();
+}
+function nextRound(){
+  clearStage();clearTimers();
+  if(ri>=rounds.length)return finish();
+  roundLbl.textContent=`ROUND ${ri+1} / ${rounds.length}`;
+  state='countdown';
+  setMsg(`<div class="sub">eyes on the road…</div>`);
+  later(()=>{ msg.innerHTML=''; state='waiting';
+    later(fireEvent, 1400+Math.random()*3100);
+  },900);
+}
+function fireEvent(){
+  const r=rounds[ri];
+  r.ev.spawn();
+  t0=performance.now();
+  if(r.kind==='go'){state='go';
+    later(()=>{ if(state==='go'){
+      results.push({kind:'go',rt:null,label:r.ev.desc,outcome:'miss'});
+      state='feedback';setMsg(`<div class="big bad">TOO LATE!</div><div class="sub">${r.ev.desc} You never braked.</div>`);
+      kmh.textContent='90';later(()=>{ri++;nextRound()},1500);
+    }},2000);
+  }else{state='nogo';
+    later(()=>{ if(state==='nogo'){
+      results.push({kind:'nogo',rt:null,label:r.ev.desc,outcome:'calm'});
+      state='feedback';setMsg(`<div class="big ok">SMOOTH</div><div class="sub">Just ${r.ev.desc}. No brake needed.</div>`);
+      later(()=>{ri++;nextRound()},1400);
+    }},2100);
+  }
+}
+function brake(){
+  if(state==='waiting'){ clearTimers();
+    results.push({kind:'false',rt:null,label:'False start',outcome:'false'});
+    state='feedback';brakeFX();
+    setMsg(`<div class="big bad">FALSE START!</div><div class="sub">Nothing had happened yet — round doesn't count.</div>`);
+    later(()=>{ri++;nextRound()},1600);
+  }
+  else if(state==='go'){ clearTimers();
+    const rt=Math.round(performance.now()-t0);
+    const r=rounds[ri];
+    results.push({kind:'go',rt,label:r.ev.desc,outcome:'hit'});
+    state='feedback';brakeFX();
+    const cls=rt<300?'ok':rt<430?'gul':'bad';
+    setMsg(`<div class="big ${cls}">${rt} ms</div><div class="sub">${r.ev.desc} ${rt<300?'Lightning fast.':rt<430?'All good.':'That would have cost you a car.'}</div>`);
+    later(()=>{ri++;nextRound()},1500);
+  }
+  else if(state==='nogo'){ clearTimers();
+    const r=rounds[ri];
+    results.push({kind:'nogo',rt:null,label:r.ev.desc,outcome:'panic'});
+    state='feedback';brakeFX();
+    setMsg(`<div class="big bad">PANIC BRAKE!</div><div class="sub">It was only ${r.ev.desc}. The car behind would have hit you.</div>`);
+    later(()=>{ri++;nextRound()},1700);
+  }
+}
+function brakeFX(){
+  scene.classList.remove('driving');
+  kmh.textContent='0';
+  later(()=>{scene.classList.add('driving');kmh.textContent='90'},900);
+}
+
+/* ---------- results ---------- */
+function finish(){
+  state='done';scene.classList.remove('driving');roundLbl.textContent='';msg.innerHTML='';
+  const hits=results.filter(r=>r.outcome==='hit');
+  const avg=hits.length?Math.round(hits.reduce((a,r)=>a+r.rt,0)/hits.length):null;
+  const errs=results.filter(r=>['false','panic','miss'].includes(r.outcome)).length;
+  document.getElementById('avgStat').innerHTML=avg!=null?`${avg} <small>ms avg</small>`:`— <small>no valid brakes</small>`;
+  let rating='';
+  if(avg==null)rating='🫥 Let\'s pretend this never happened. Try again!';
+  else if(avg<290&&errs===0)rating='🦌⚡ MOOSE REFLEXES — and ice-cool under pressure. Perfect round.';
+  else if(avg<290)rating='⚡ Lightning fast — but work on composure, '+errs+' false brake(s).';
+  else if(avg<380)rating='🏁 Rally class. Faster than most drivers.';
+  else if(avg<470)rating='👍 Acceptable reaction time for an experienced driver.';
+  else rating='☕ More sleep, less coffee at the wheel. Train again!';
+  document.getElementById('rating').textContent=rating;
+
+  const bars=document.getElementById('bars');bars.innerHTML='';
+  results.forEach((r,i)=>{
+    const row=document.createElement('div');row.className='bar'+(r.outcome==='hit'?'':' err');
+    const lab=r.outcome==='hit'?r.rt+' ms':({false:'false start',panic:'panic brake',miss:'too late',calm:'smooth ✓'})[r.outcome];
+    row.innerHTML=`<span style="width:18px">${i+1}</span><div class="track"><div class="fill"></div></div><span class="v">${lab}</span>`;
+    if(r.outcome==='calm'){row.classList.remove('err');row.querySelector('.fill').style.background='var(--gron)'}
+    bars.appendChild(row);
+    const w=r.outcome==='hit'?Math.min(100,r.rt/8):(r.outcome==='calm'?100:100);
+    setTimeout(()=>{row.querySelector('.fill').style.width=w+'%'},150+i*90);
+  });
+
+  const dist=document.getElementById('dist');
+  if(avg!=null){
+    const row=v=>`<div class="drow"><span>${v} km/h</span><b>${(v/3.6*avg/1000).toFixed(1)} m</b></div>`;
+    dist.innerHTML=`<h4>Your reaction distance <span>— how far you travel before braking</span></h4>${row(30)}${row(50)}${row(70)}${row(90)}${row(110)}`;
+    dist.classList.remove('hidden');
+  } else dist.classList.add('hidden');
+
+  const badge=document.getElementById('bestBadge');badge.innerHTML='';
+  if(avg!=null&&hits.length>=4){
+    const old=localStorage.getItem('br.brake.best');
+    if(old==null||avg<+old){localStorage.setItem('br.brake.best',avg);badge.innerHTML='<span class="newbest">★ NEW PERSONAL BEST</span>'}
+  }
+  localStorage.setItem('br.plays',(+localStorage.getItem('br.plays')||0)+1);
+  document.getElementById('resNote').textContent='Reaction distance = speed × reaction time. Then braking distance begins — which grows with the square of speed.';
+  document.getElementById('resOvl').classList.remove('hidden');
+}
+
+/* ---------- input ---------- */
+addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault();
+    if(state==='idle')startGame();else brake();}
+});
+scene.addEventListener('pointerdown',()=>{if(['waiting','go','nogo'].includes(state))brake()});
+document.getElementById('startBtn').addEventListener('click',()=>startGame());
+document.getElementById('againBtn').addEventListener('click',()=>startGame());
+setLight('g');
+</script>
+</body>
+</html>

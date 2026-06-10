@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BrainRoad — Swedish driving brain training</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g transform='rotate(45 50 50)'><rect x='22' y='22' width='56' height='56' rx='8' fill='white'/><rect x='32' y='32' width='36' height='36' rx='4' fill='%23FFCD00'/></g></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400..700;1,400..700&family=Spline+Sans+Mono:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#060B16; --bg1:#0B1426; --panel:#0E1830; --line:rgba(170,200,255,.10);
+  --ink:#EAF2FF; --dim:#8FA3C4; --faint:#5A6C8C;
+  --gul:#FFCD00; --rod:#E8344A; --bla:#3D8BFD; --gron:#2BE8A4; --lila:#9D7BFF;
+  --sign-rod:#E0162B; --sign-bla:#1262B3;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:radial-gradient(1200px 800px at 75% -10%, #101E3D 0%, var(--bg0) 55%) fixed, var(--bg0);
+  color:var(--ink); font-family:'Familjen Grotesk',system-ui,sans-serif;
+  overflow-x:hidden; min-height:100vh;
+}
+body::after{content:"";position:fixed;inset:0;z-index:90;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.7'/></svg>")}
+.aurora{position:fixed;border-radius:50%;filter:blur(95px);pointer-events:none;z-index:0;mix-blend-mode:screen}
+.a1{width:62vw;height:46vh;background:radial-gradient(ellipse,rgba(43,232,164,.32) 0%,transparent 70%);top:-12vh;left:-12vw;animation:dr1 28s ease-in-out infinite alternate}
+.a2{width:50vw;height:40vh;background:radial-gradient(ellipse,rgba(61,139,253,.26) 0%,transparent 70%);top:-6vh;right:-14vw;animation:dr2 34s ease-in-out infinite alternate}
+.a3{width:46vw;height:34vh;background:radial-gradient(ellipse,rgba(157,123,255,.20) 0%,transparent 70%);bottom:-14vh;left:22vw;animation:dr3 40s ease-in-out infinite alternate}
+@keyframes dr1{to{transform:translate(14vw,9vh) scale(1.18)}}
+@keyframes dr2{to{transform:translate(-10vw,12vh) scale(1.12) rotate(8deg)}}
+@keyframes dr3{to{transform:translate(10vw,-8vh) scale(1.22)}}
+#snow{position:fixed;inset:0;z-index:1;pointer-events:none}
+main,header,footer{position:relative;z-index:2}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:22px clamp(20px,5vw,64px)}
+.logo{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.04em;font-size:18px}
+.logo svg{width:34px;height:34px;filter:drop-shadow(0 0 10px rgba(255,205,0,.45))}
+.logo small{display:block;font-weight:400;color:var(--dim);letter-spacing:.12em;font-size:10px;text-transform:uppercase}
+.hdr-right{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--faint);letter-spacing:.08em}
+
+/* ---------- HERO ---------- */
+.hero{text-align:center;padding:clamp(28px,6vh,72px) 20px 0}
+.eyebrow{display:inline-block;font-family:'Spline Sans Mono',monospace;font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--gron);border:1px solid rgba(43,232,164,.3);padding:8px 18px;border-radius:99px;background:rgba(43,232,164,.06)}
+h1{font-size:clamp(56px,11vw,148px);font-weight:700;letter-spacing:-.035em;line-height:.95;margin:26px 0 10px;
+  background:linear-gradient(180deg,#FFF 18%,#CFE0FF 50%,#7FA4E8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 30px 80px rgba(61,139,253,.25)}
+h1 .gul{background:linear-gradient(180deg,#FFE680,var(--gul) 60%,#D89E00);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{font-size:clamp(17px,2.2vw,22px);color:var(--dim);max-width:640px;margin:14px auto 6px;line-height:1.55}
+.lede b{color:var(--ink);font-weight:600}
+.lede-en{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--faint);letter-spacing:.06em}
+.cta{display:inline-block;margin-top:34px;background:var(--gul);color:#14171D;border:4px solid var(--sign-rod);
+  font:700 18px 'Familjen Grotesk',sans-serif;letter-spacing:.02em;padding:16px 38px;border-radius:16px;text-decoration:none;
+  box-shadow:0 0 0 3px rgba(255,255,255,.12),0 14px 44px rgba(255,205,0,.28);transition:transform .18s,box-shadow .18s}
+.cta:hover{transform:translateY(-3px) rotate(-.7deg);box-shadow:0 0 0 3px rgba(255,255,255,.2),0 20px 60px rgba(255,205,0,.4)}
+
+/* night road scene */
+.road-scene{position:relative;height:clamp(220px,32vh,330px);margin-top:26px;perspective:560px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 22%);mask-image:linear-gradient(180deg,transparent 0,#000 22%)}
+.treeline{position:absolute;bottom:0;left:0;right:0;height:100%;opacity:.9}
+.road{position:absolute;left:50%;bottom:-60px;width:min(480px,72vw);height:640px;transform:translateX(-50%) rotateX(57deg);transform-origin:50% 100%;
+  background:linear-gradient(180deg,#0C1322 0%,#1B2538 55%,#222E45 100%);
+  border-left:12px solid #2E3C58;border-right:12px solid #2E3C58}
+.road::before{content:"";position:absolute;left:50%;top:0;width:16px;height:200%;margin-left:-8px;
+  background:repeating-linear-gradient(180deg,#FFD34D 0 52px,transparent 52px 118px);animation:dash 1.05s linear infinite}
+@keyframes dash{to{transform:translateY(-118px)}}
+.fog{position:absolute;left:0;right:0;top:0;height:55%;background:linear-gradient(180deg,var(--bg0) 14%,transparent);z-index:3}
+.post{position:absolute;bottom:34px;width:74px;z-index:4;animation:bob 5s ease-in-out infinite}
+.post.l{left:calc(50% - min(330px,46vw))}
+.post.r{right:calc(50% - min(330px,46vw));animation-delay:-2.5s}
+@keyframes bob{50%{transform:translateY(-7px)}}
+.post svg{width:74px;height:74px;filter:drop-shadow(0 0 14px rgba(255,205,0,.35)) drop-shadow(0 10px 18px rgba(0,0,0,.5))}
+.post .pole{width:6px;height:58px;margin:0 auto;background:linear-gradient(#8A97B0,#39455E);border-radius:3px}
+
+/* ---------- BEST STRIP ---------- */
+.bests{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:30px 20px 6px}
+.best{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--dim);border:1px solid var(--line);
+  background:rgba(14,24,48,.6);padding:9px 16px;border-radius:99px;letter-spacing:.04em}
+.best b{color:var(--ink);font-weight:600}
+.best .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;vertical-align:1px}
+
+/* ---------- GAME CARDS ---------- */
+.section-h{display:flex;align-items:baseline;gap:18px;padding:64px clamp(20px,5vw,64px) 24px}
+.section-h h2{font-size:clamp(26px,3.4vw,40px);letter-spacing:-.02em}
+.section-h span{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--faint);letter-spacing:.2em;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;padding:0 clamp(20px,5vw,64px) 30px;max-width:1500px;margin:0 auto}
+.card{position:relative;display:flex;flex-direction:column;gap:14px;background:linear-gradient(165deg,rgba(20,32,60,.85),rgba(10,17,33,.92));
+  border:1px solid var(--line);border-radius:22px;padding:26px 24px 22px;text-decoration:none;color:var(--ink);
+  overflow:hidden;transition:transform .22s cubic-bezier(.2,.8,.3,1.2),border-color .22s,box-shadow .22s;
+  opacity:0;transform:translateY(26px)}
+.card.in{opacity:1;transform:none}
+.card::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--acc);opacity:.85}
+.card::after{content:"";position:absolute;width:240px;height:240px;border-radius:50%;right:-90px;top:-90px;
+  background:radial-gradient(circle,color-mix(in srgb,var(--acc) 22%,transparent),transparent 70%);transition:opacity .3s;opacity:.5}
+.card:hover{transform:translateY(-7px);border-color:color-mix(in srgb,var(--acc) 45%,transparent);box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 40px color-mix(in srgb,var(--acc) 12%,transparent)}
+.card:hover::after{opacity:1}
+.card:hover .csign{transform:rotate(-5deg) scale(1.08)}
+.ctop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.csign{width:74px;height:74px;flex:none;transition:transform .3s cubic-bezier(.2,.9,.3,1.4);filter:drop-shadow(0 8px 20px rgba(0,0,0,.55))}
+.ckicker{font-family:'Spline Sans Mono',monospace;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--acc)}
+.card h3{font-size:30px;letter-spacing:-.02em;line-height:1.02;margin-top:5px}
+.card h3 small{display:block;font-size:13px;font-weight:400;color:var(--dim);letter-spacing:.02em;margin-top:6px}
+.cdesc{color:var(--dim);font-size:14.5px;line-height:1.55;flex:1}
+.cfoot{display:flex;justify-content:space-between;align-items:center;border-top:1px dashed var(--line);padding-top:14px}
+.cbest{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--faint)}
+.cbest b{color:var(--acc);font-weight:600}
+.cplay{font-weight:700;font-size:14px;color:var(--ink);letter-spacing:.02em}
+.cplay::after{content:"→";margin-left:7px;display:inline-block;transition:transform .2s}
+.card:hover .cplay::after{transform:translateX(5px)}
+
+/* ---------- FACTS ---------- */
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;padding:8px clamp(20px,5vw,64px) 60px;max-width:1500px;margin:0 auto}
+.fact{border:1px solid var(--line);border-radius:18px;padding:24px;background:rgba(10,17,33,.65)}
+.fact .n{font-family:'Spline Sans Mono',monospace;font-size:30px;font-weight:700;color:var(--gul)}
+.fact h4{margin:10px 0 8px;font-size:17px}
+.fact p{color:var(--dim);font-size:14px;line-height:1.6}
+footer{text-align:center;padding:34px 20px 50px;color:var(--faint);font-size:13px;border-top:1px solid var(--line)}
+footer .mono{font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spacing:.08em;margin-top:8px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="aurora a1"></div><div class="aurora a2"></div><div class="aurora a3"></div>
+<canvas id="snow"></canvas>
+
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><rect x="22" y="22" width="56" height="56" rx="8" fill="#F4F6F8"/><rect x="32" y="32" width="36" height="36" rx="4" fill="#FFCD00"/></g></svg>
+    <div>BRAINROAD<small>swedish driving · mental training</small></div>
+  </div>
+  <div class="hdr-right">SE · DRIVING LICENCE · BRAIN GYM</div>
+</header>
+
+<main>
+  <section class="hero">
+    <span class="eyebrow">Reaction · Signs · Right-of-way · Focus · Memory</span>
+    <h1>BRAIN<span class="gul">ROAD</span></h1>
+    <p class="lede">Five games that train <b>the brain behind the wheel</b> — faster braking reflexes, lightning-quick sign reading and confident decisions at intersections. Built for Swedish roads, Swedish signs and Swedish rules.</p>
+    <p class="lede-en">// five mind-training games for swedish driving — reaction, signs, right-of-way, attention, memory</p>
+    <a class="cta" href="#games">START TRAINING ↓</a>
+
+    <div class="road-scene">
+      <svg class="treeline" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMax slice">
+        <path d="M0 300 L0 210 L28 210 L40 160 L55 210 L70 210 L84 130 L100 210 L130 210 L142 170 L158 210 L240 210 L255 150 L272 210 L320 210 L334 120 L350 210 L420 210 L433 165 L448 210 L760 210 L774 150 L790 210 L840 210 L855 115 L872 210 L930 210 L942 168 L958 210 L1030 210 L1046 140 L1062 210 L1110 210 L1122 175 L1136 210 L1200 210 L1200 300 Z" fill="#0A1120"/>
+        <path d="M0 300 L0 240 L60 240 L74 195 L90 240 L170 240 L186 175 L202 240 L290 240 L302 205 L316 240 L700 240 L716 180 L732 240 L820 240 L832 208 L846 240 L980 240 L996 172 L1012 240 L1090 240 L1102 210 L1116 240 L1200 240 L1200 300 Z" fill="#0D1626"/>
+      </svg>
+      <div class="fog"></div>
+      <div class="road"></div>
+      <div class="post l">
+        <svg viewBox="0 0 100 100"><polygon points="50,8 94,84 6,84" fill="#FFCD00" stroke="#E0162B" stroke-width="8" stroke-linejoin="round"/><g fill="#161A21" stroke="#161A21" stroke-width="1.5" stroke-linejoin="round"><path d="M22 48 L22 44 L30 42 L34 43 L42 55 L66 55 L70 58 L69 64 L69 78 L65 78 L65 64 L59 64 L59 78 L55 78 L55 63 L47 63 L47 78 L43 78 L43 63 L39 60 L34 52 L28 52 Z"/><path d="M31 42 L29 30 L33 31 L34.5 37 L36 30 L40 31 L37 43 Z"/></g></svg>
+        <div class="pole"></div>
+      </div>
+      <div class="post r">
+        <svg viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><rect x="23" y="23" width="54" height="54" rx="7" fill="#F4F6F8"/><rect x="32" y="32" width="36" height="36" rx="4" fill="#FFCD00"/></g></svg>
+        <div class="pole"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="bests" id="bests"></div>
+
+  <div class="section-h" id="games"><h2>Choose your drill</h2><span>// pick a game</span></div>
+  <section class="grid" id="grid">
+
+    <a class="card" href="brake.html" style="--acc:var(--rod)" data-key="br.brake.best" data-fmt="ms-low">
+      <div class="ctop">
+        <div><div class="ckicker">Reaction + impulse control</div><h3>Brake!<small>Reaction time &amp; go/no-go</small></h3></div>
+        <svg class="csign" viewBox="0 0 100 100"><polygon points="50,8 94,84 6,84" fill="#FFCD00" stroke="#E0162B" stroke-width="8" stroke-linejoin="round"/><g fill="#161A21" stroke="#161A21" stroke-width="1.5" stroke-linejoin="round"><path d="M22 48 L22 44 L30 42 L34 43 L42 55 L66 55 L70 58 L69 64 L69 78 L65 78 L65 64 L59 64 L59 78 L55 78 L55 63 L47 63 L47 78 L43 78 L43 63 L39 60 L34 52 L28 52 Z"/><path d="M31 42 L29 30 L33 31 L34.5 37 L36 30 L40 31 L37 43 Z"/></g></svg>
+      </div>
+      <p class="cdesc">Moose on the road, red lights, pedestrians. Brake hard when the danger is real — but keep calm when it's not. Measures your reaction time in milliseconds and your stopping distance in metres.</p>
+      <div class="cfoot"><span class="cbest">BEST AVG <b>—</b></span><span class="cplay">PLAY</span></div>
+    </a>
+
+    <a class="card" href="signs.html" style="--acc:var(--gul)" data-key="br.signs.best" data-fmt="pts">
+      <div class="ctop">
+        <div><div class="ckicker">Sign recognition</div><h3>Sign Master<small>Speed quiz — 15 signs</small></h3></div>
+        <svg class="csign" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#FFCD00" stroke="#E0162B" stroke-width="9"/><text x="50" y="63" text-anchor="middle" font-size="38" font-weight="700" font-family="'Familjen Grotesk',sans-serif" fill="#161A21">70</text></svg>
+      </div>
+      <p class="cdesc">Swedish signs at speed. The faster you answer correctly the more points you earn — and each sign comes with a theory rule worth knowing for the real test.</p>
+      <div class="cfoot"><span class="cbest">RECORD <b>—</b></span><span class="cplay">PLAY</span></div>
+    </a>
+
+    <a class="card" href="intersection.html" style="--acc:var(--bla)" data-key="br.intersection.best" data-fmt="pts">
+      <div class="ctop">
+        <div><div class="ckicker">Right-of-way rules</div><h3>Intersection<small>Who goes first?</small></h3></div>
+        <svg class="csign" viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><rect x="23" y="23" width="54" height="54" rx="7" fill="#F4F6F8"/><rect x="32" y="32" width="36" height="36" rx="4" fill="#FFCD00"/></g></svg>
+      </div>
+      <p class="cdesc">Right-hand rule, priority road, compulsory stop, exit rule and left-turn vs oncoming. You have a few seconds: go or wait? Then the cars show you what would have happened.</p>
+      <div class="cfoot"><span class="cbest">RECORD <b>—</b></span><span class="cplay">PLAY</span></div>
+    </a>
+
+    <a class="card" href="scout.html" style="--acc:var(--gron)" data-key="br.scout.best" data-fmt="s-low">
+      <div class="ctop">
+        <div><div class="ckicker">Visual attention</div><h3>The Scout<small>Visual search game</small></h3></div>
+        <svg class="csign" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#1262B3" stroke="#E0162B" stroke-width="9"/><line x1="80" y1="20" x2="20" y2="80" stroke="#E0162B" stroke-width="9"/></svg>
+      </div>
+      <p class="cdesc">Find the right sign in a sea of near-identical ones — including mirror-flipped fakes. Trains the same eye that spots signs in a busy city environment.</p>
+      <div class="cfoot"><span class="cbest">FASTEST <b>—</b></span><span class="cplay">PLAY</span></div>
+    </a>
+
+    <a class="card" href="memory.html" style="--acc:var(--lila)" data-key="br.memory.best" data-fmt="span">
+      <div class="ctop">
+        <div><div class="ckicker">Working memory</div><h3>Road Memory<small>Sign sequence recall</small></h3></div>
+        <svg class="csign" viewBox="0 0 100 100"><polygon points="7,16 93,16 50,90" fill="#FFCD00" stroke="#E0162B" stroke-width="8" stroke-linejoin="round"/></svg>
+      </div>
+      <p class="cdesc">Signs pass by at driving speed — which ones did you see, and in what order? Working memory is what keeps track of the sign you just passed. Can you manage seven in a row?</p>
+      <div class="cfoot"><span class="cbest">MEMORY SPAN <b>—</b></span><span class="cplay">PLAY</span></div>
+    </a>
+
+  </section>
+
+  <div class="section-h"><h2>Why train your brain?</h2><span>// the science-ish bit</span></div>
+  <section class="facts">
+    <div class="fact"><div class="n">25 m</div><h4>Stopping distance at 90 km/h</h4><p>With a one-second reaction time, your car travels 25 metres <em>before you even touch the brake</em>. Halve your reaction time and you halve that distance. That's why Brake! exists.</p></div>
+    <div class="fact"><div class="n">325+</div><h4>Road signs in Sweden</h4><p>Swedish signs use a yellow background to stand out in snow. On the theory test — and in real traffic — they must be read in a fraction of a second. Sign Master and The Scout build that automaticity.</p></div>
+    <div class="fact"><div class="n">⅓</div><h4>Of accidents happen at intersections</h4><p>The right-hand rule applies everywhere without other signs — even in car parks. The Intersection game drills your decision-making until it's in your spinal cord, not your conscious deliberation.</p></div>
+  </section>
+</main>
+
+<footer>
+  A brain-training game — does not replace official theory materials or the Swedish Transport Agency test. Drive safely. 🦌
+  <div class="mono">BRAINROAD · BUILT WITH YELLOW BACKGROUND AND RED BORDER · GOOD LUCK ON YOUR TEST</div>
+</footer>
+
+<script>
+// snowfall
+const sc=document.getElementById('snow'),sx=sc.getContext('2d');let W,H;
+function rs(){W=sc.width=innerWidth;H=sc.height=innerHeight}rs();addEventListener('resize',rs);
+const flakes=Array.from({length:110},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.8+.6,s:Math.random()*.6+.25,w:Math.random()*.9+.2,p:Math.random()*6.28}));
+(function loop(){sx.clearRect(0,0,W,H);sx.fillStyle='#EBF2FF';for(const f of flakes){f.y+=f.s;f.x+=Math.sin(f.p+=.008)*f.w*.35;if(f.y>H){f.y=-4;f.x=Math.random()*W}sx.globalAlpha=.18+f.r*.18;sx.beginPath();sx.arc(f.x,f.y,f.r,0,6.28);sx.fill()}sx.globalAlpha=1;requestAnimationFrame(loop)})();
+
+// best scores
+const fmt={
+  'ms-low':v=>`<b>${v} ms</b>`,
+  'pts':v=>`<b>${v} pts</b>`,
+  's-low':v=>`<b>${(v/1000).toFixed(2)} s</b>`,
+  'span':v=>`<b>${v} signs</b>`
+};
+document.querySelectorAll('.card').forEach(c=>{
+  const v=localStorage.getItem(c.dataset.key);
+  if(v!=null)c.querySelector('.cbest b').outerHTML=fmt[c.dataset.fmt](+v);
+});
+const bestsEl=document.getElementById('bests');
+const strip=[
+  ['br.brake.best','var(--rod)','REACTION',v=>v+' ms'],
+  ['br.signs.best','var(--gul)','SIGNS',v=>v+' pts'],
+  ['br.intersection.best','var(--bla)','INTERSECT',v=>v+' pts'],
+  ['br.scout.best','var(--gron)','SCOUT',v=>(v/1000).toFixed(2)+' s'],
+  ['br.memory.best','var(--lila)','MEMORY',v=>v+' signs']
+];
+const plays=localStorage.getItem('br.plays');
+let html=plays?`<span class="best"><span class="dot" style="background:#fff"></span>${plays} ROUNDS PLAYED</span>`:'';
+for(const[k,col,lab,f]of strip){const v=localStorage.getItem(k);html+=`<span class="best"><span class="dot" style="background:${col}"></span>${lab} ${v!=null?'<b>'+f(+v)+'</b>':'<b>—</b>'}</span>`}
+bestsEl.innerHTML=html;
+
+// staggered card reveal
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.card').forEach((c,i)=>{c.style.transitionDelay=(i*70)+'ms';io.observe(c)});
+</script>
+</body>
+</html>
