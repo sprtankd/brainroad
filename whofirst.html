@@ -154,14 +154,17 @@ const POS={
   N:{x:275,y:112,deg:180}, E:{x:492,y:275,deg:-90},
   S:{x:325,y:478,deg:0},   W:{x:108,y:325,deg:90}
 };
+// lane-correct points at the edge of the junction box (drive-on-the-right)
+const ENTRY={S:{x:325,y:350},N:{x:275,y:250},E:{x:350,y:275},W:{x:250,y:325}}; // where each car enters the box, in its own lane
+const EXIT ={N:{x:325,y:250},S:{x:275,y:350},W:{x:250,y:275},E:{x:350,y:325}}; // where a car leaving toward N/S/E/W aligns to its exit lane
+const FAR  ={N:{x:325,y:-90},S:{x:275,y:690},W:{x:-90,y:275},E:{x:690,y:325}}; // off-screen exit
+// compass direction a car exits toward, given where it came from + its turn
+const TURN={S:{straight:'N',left:'W',right:'E'},N:{straight:'S',left:'E',right:'W'},
+            E:{straight:'W',left:'S',right:'N'},W:{straight:'E',left:'N',right:'S'}};
 function pathFor(dir,move){
-  const P={
-    N:{straight:{ctrl:{x:275,y:470},to:{x:275,y:690}}, left:{ctrl:{x:300,y:325},to:{x:690,y:325}}, right:{ctrl:{x:275,y:275},to:{x:-90,y:275}}},
-    E:{straight:{ctrl:{x:230,y:275},to:{x:-90,y:275}}, left:{ctrl:{x:300,y:300},to:{x:275,y:690}}, right:{ctrl:{x:325,y:275},to:{x:325,y:-90}}},
-    S:{straight:{ctrl:{x:325,y:160},to:{x:325,y:-90}}, left:{ctrl:{x:325,y:275},to:{x:-90,y:275}}, right:{ctrl:{x:325,y:325},to:{x:690,y:325}}},
-    W:{straight:{ctrl:{x:430,y:325},to:{x:690,y:325}}, left:{ctrl:{x:300,y:300},to:{x:325,y:-90}}, right:{ctrl:{x:275,y:325},to:{x:275,y:690}}}
-  };
-  return P[dir][move];
+  const ex=TURN[dir][move];
+  // cubic: P0(start) -> C1(enter own lane) -> C2(align exit lane) -> P3(off-screen)
+  return {c1:ENTRY[dir],c2:EXIT[ex],to:FAR[ex]};
 }
 const COL={YOU:'#FFCD00','1':'#D9E2F0','2':'#6FB1FF'};
 const MVTXT={straight:'going straight ▲',left:'turning left ↰',right:'turning right ↱'};
@@ -227,22 +230,20 @@ const SC=[
 const svg=document.getElementById('scene');
 const ROADCOL='#1C2538',EDGE='#2E3C58';
 let carEls={};
+// a sign on a post, sign centred above (x,y) is the post foot
+function postSign(x,y,inner,sc2){
+  const sz=100*sc2;
+  return `<rect x="${x-2.5}" y="${y}" width="5" height="40" rx="2" fill="#5A6C8C"/>`+
+         `<g transform="translate(${x-sz/2} ${y-sz-2}) scale(${sc2})">${inner}</g>`;
+}
+// give-way road triangles painted across the player's stop line (bottom of box)
+const yieldMarks=`<g fill="#D9E2F0"><polygon points="306,356 317,356 311.5,371"/><polygon points="319,356 330,356 324.5,371"/><polygon points="332,356 343,356 337.5,371"/></g>`;
 function controls(sc){
-  let s='';
-  const dash='stroke="#A9B7D6" stroke-width="4" stroke-dasharray="18 16" opacity=".5"';
-  // default centre dashes (drawn in base); add markings + posted signs
-  const yieldTri=(x,y)=>`<g fill="#D9E2F0" transform="translate(${x} ${y})"><polygon points="0,0 10,0 5,14"/><polygon points="15,0 25,0 20,14"/><polygon points="30,0 40,0 35,14"/></g>`;
-  if(sc.priority==='NS'){
-    // E & W are minor -> yield markings on their approach to the box; diamond posted on vertical road
-    s+=yieldTri(360,300-7).replace('translate(360 293)','translate(360 293) rotate(90 0 7)'); // east approach (rotate marks)
-    s+=`<g transform="translate(372 150)"><rect x="-2" y="44" width="5" height="46" rx="2" fill="#5A6C8C"/><g transform="translate(-22 0) scale(.46)">${SIGN_DIAMOND}</g></g>`;
-  }else if(sc.priority==='EW'){
-    s+=`<g fill="#D9E2F0" transform="translate(306 356)"><polygon points="0,0 10,0 5,14"/><polygon points="15,0 25,0 20,14"/><polygon points="30,0 40,0 35,14"/></g>`; // south (your) yield line
-    s+=`<g transform="translate(150 372)"><rect x="-2" y="-2" width="5" height="46" rx="2" fill="#5A6C8C"/><g transform="translate(-22 -46) scale(.46)">${SIGN_DIAMOND}</g></g>`;
-  }
-  if(sc.sign==='stopp')s+=`<rect x="303" y="356" width="44" height="8" fill="#D9E2F0"/>`;
-  if(sc.sign==='vajning'&&sc.priority!=='EW')s+=`<g fill="#D9E2F0" transform="translate(306 356)"><polygon points="0,0 10,0 5,14"/><polygon points="15,0 25,0 20,14"/><polygon points="30,0 40,0 35,14"/></g>`;
-  return s;
+  // The sign always sits on the PLAYER'S approach (south), on the right just
+  // BEFORE the junction — so it clearly belongs to the road you're on.
+  if(sc.priority==='NS') return postSign(372,360,SIGN_DIAMOND,.48);  // you're on the priority road
+  if(sc.priority==='EW') return yieldMarks+postSign(372,372,SIGN_YIELD,.46); // you give way to the crossing road
+  return '';  // unsigned -> right-hand rule (centre dashes only)
 }
 function buildScene(sc){
   const trees=[[60,80],[140,40],[520,90],[560,170],[60,520],[120,560],[520,520],[470,560],[40,200],[555,420]]
@@ -292,18 +293,18 @@ function markPicks(){
 }
 
 /* ---------- driving animation ---------- */
-function drive(el,from,ctrl,to,dur,delay){
+function drive(el,p0,c1,c2,p3,dur,delay){
   return new Promise(res=>{
     const t0=performance.now()+(delay||0);
     function step(now){
       let t=(now-t0)/dur;
       if(t<0){requestAnimationFrame(step);return}
       t=Math.min(1,t);
-      const e=t*t*(3-2*t),u=1-e;
-      const x=u*u*from.x+2*u*e*ctrl.x+e*e*to.x;
-      const y=u*u*from.y+2*u*e*ctrl.y+e*e*to.y;
-      const dx=2*u*(ctrl.x-from.x)+2*e*(to.x-ctrl.x);
-      const dy=2*u*(ctrl.y-from.y)+2*e*(to.y-ctrl.y);
+      const e=t*t*(3-2*t),u=1-e;  // smoothstep easing
+      const x=u*u*u*p0.x+3*u*u*e*c1.x+3*u*e*e*c2.x+e*e*e*p3.x;
+      const y=u*u*u*p0.y+3*u*u*e*c1.y+3*u*e*e*c2.y+e*e*e*p3.y;
+      const dx=3*u*u*(c1.x-p0.x)+6*u*e*(c2.x-c1.x)+3*e*e*(p3.x-c2.x);
+      const dy=3*u*u*(c1.y-p0.y)+6*u*e*(c2.y-c1.y)+3*e*e*(p3.y-c2.y);
       const deg=Math.atan2(dy,dx)*180/Math.PI+90;
       el.setAttribute('transform',`translate(${x} ${y}) rotate(${deg})`);
       if(t<1)requestAnimationFrame(step);else res();
@@ -317,9 +318,7 @@ async function playOut(sc){
   sc.order.forEach((id,i)=>{
     const el=carEls[id];const c=sc.cars.find(x=>x.id===id);
     const pa=pathFor(c.dir,c.move);
-    // keep only the rotated car subgroup moving cleanly: strip badge/pickmark
-    el.g.querySelector('.badge').style.transition='opacity .3s';
-    proms.push(drive(el.g,el.pos,pa.ctrl,pa.to,1500,i*850));
+    proms.push(drive(el.g,el.pos,pa.c1,pa.c2,pa.to,1700,i*850));
   });
   await Promise.all(proms);
 }
