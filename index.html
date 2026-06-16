@@ -134,10 +134,10 @@ footer .mono{font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spac
 
 <main>
   <section class="hero">
-    <span class="eyebrow">Reaction · Signs · Right-of-way · Focus · Memory</span>
+    <span class="eyebrow">Reaction · Signs · Right-of-way · Order · Focus · Memory</span>
     <h1>BRAIN<span class="gul">ROAD</span></h1>
-    <p class="lede">Five games that train <b>the brain behind the wheel</b> — faster braking reflexes, lightning-quick sign reading and confident decisions at intersections. Built for Swedish roads, Swedish signs and Swedish rules.</p>
-    <p class="lede-en">// five mind-training games for swedish driving — reaction, signs, right-of-way, attention, memory</p>
+    <p class="lede">Six games that train <b>the brain behind the wheel</b> — faster braking reflexes, lightning-quick sign reading and confident decisions at intersections. Built for Swedish roads, Swedish signs and Swedish rules.</p>
+    <p class="lede-en">// six mind-training games for swedish driving — reaction, signs, right-of-way, priority order, attention, memory</p>
     <a class="cta" href="#games">START TRAINING ↓</a>
 
     <div class="road-scene">
@@ -190,6 +190,15 @@ footer .mono{font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spac
       <div class="cfoot"><span class="cbest">RECORD <b>—</b></span><span class="cplay">PLAY</span></div>
     </a>
 
+    <a class="card" href="whofirst.html" style="--acc:#FF8A3D" data-key="br.whofirst.best" data-fmt="pts">
+      <div class="ctop">
+        <div><div class="ckicker">Right-of-way order</div><h3>Who Goes First?<small>Order the cars 1 · 2 · 3</small></h3></div>
+        <svg class="csign" viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="12" fill="#1262B3" stroke="#F4F6F8" stroke-width="3"/><text x="50" y="63" text-anchor="middle" font-family="'Spline Sans Mono',monospace" font-size="29" font-weight="700" fill="#fff">1·2·3</text></svg>
+      </div>
+      <p class="cdesc">Two or three cars meet at a junction — including you. Work out the order they may proceed from the signs and the right-hand rule, then tap them 1st, 2nd, 3rd and watch it play out.</p>
+      <div class="cfoot"><span class="cbest">RECORD <b>—</b></span><span class="cplay">PLAY</span></div>
+    </a>
+
     <a class="card" href="scout.html" style="--acc:var(--gron)" data-key="br.scout.best" data-fmt="s-low">
       <div class="ctop">
         <div><div class="ckicker">Visual attention</div><h3>The Scout<small>Visual search game</small></h3></div>
@@ -204,7 +213,7 @@ footer .mono{font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spac
         <div><div class="ckicker">Working memory</div><h3>Road Memory<small>Sign sequence recall</small></h3></div>
         <svg class="csign" viewBox="0 0 100 100"><polygon points="7,16 93,16 50,90" fill="#FFCD00" stroke="#E0162B" stroke-width="8" stroke-linejoin="round"/></svg>
       </div>
-      <p class="cdesc">Signs pass by at driving speed — which ones did you see, and in what order? Working memory is what keeps track of the sign you just passed. Can you manage seven in a row?</p>
+      <p class="cdesc">Signs roll down the road and vanish — which ones did you see, and in what order? Working memory is what keeps track of the sign you just passed. Can you hold five in a row?</p>
       <div class="cfoot"><span class="cbest">MEMORY SPAN <b>—</b></span><span class="cplay">PLAY</span></div>
     </a>
 
@@ -247,7 +256,8 @@ const strip=[
   ['br.signs.best','var(--gul)','SIGNS',v=>v+' pts'],
   ['br.intersection.best','var(--bla)','INTERSECT',v=>v+' pts'],
   ['br.scout.best','var(--gron)','SCOUT',v=>(v/1000).toFixed(2)+' s'],
-  ['br.memory.best','var(--lila)','MEMORY',v=>v+' signs']
+  ['br.memory.best','var(--lila)','MEMORY',v=>v+' signs'],
+  ['br.whofirst.best','#FF8A3D','ORDER',v=>v+' pts']
 ];
 const plays=localStorage.getItem('br.plays');
 let html=plays?`<span class="best"><span class="dot" style="background:#fff"></span>${plays} ROUNDS PLAYED</span>`:'';

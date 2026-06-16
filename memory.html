@@ -30,19 +30,19 @@ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'
 #prompt small{display:block;font-size:13px;color:var(--dim);font-weight:400;margin-top:4px}
 #stage{position:relative;height:clamp(210px,32vh,290px);overflow:hidden;border-radius:22px;border:1px solid var(--line);
 background:linear-gradient(180deg,#080D1A 0%,#0E1830 60%,#131F3B 78%,#0D1526 80%);margin-bottom:16px}
-#stage .roadline{position:absolute;left:0;right:0;bottom:18%;height:5px;background:repeating-linear-gradient(90deg,#FFD34D 0 36px,transparent 36px 78px);opacity:.7}
-#stage.rolling .roadline{animation:rl .7s linear infinite}
-@keyframes rl{to{background-position:-78px 0}}
-.passSign{position:absolute;bottom:14%;left:100%;width:clamp(110px,17vh,150px);filter:drop-shadow(0 12px 28px rgba(0,0,0,.6))}
-.passSign svg{width:100%}
-.passSign .pole{width:7px;height:52px;margin:-4px auto 0;background:linear-gradient(#8A97B0,#39455E);border-radius:3px}
-.passing{animation:passBy var(--pd,1s) cubic-bezier(.3,.1,.5,1) both}
+#stage .roadline{position:absolute;top:0;bottom:0;left:50%;width:6px;margin-left:-3px;background:repeating-linear-gradient(180deg,#FFD34D 0 30px,transparent 30px 66px);opacity:.6}
+#stage.rolling .roadline{animation:rl .6s linear infinite}
+@keyframes rl{to{background-position:0 66px}}
+.passSign{position:absolute;top:0;left:50%;width:clamp(96px,15vh,132px);margin-left:calc(clamp(96px,15vh,132px) / -2);filter:drop-shadow(0 12px 28px rgba(0,0,0,.6))}
+.passSign svg{width:100%;display:block}
+.passSign .pole{display:none}
+.passing{animation:passBy var(--pd,1s) cubic-bezier(.3,.05,.6,1) both}
 @keyframes passBy{
-  0%{transform:translateX(0) scale(.55);opacity:0}
-  18%{opacity:1}
-  50%{transform:translateX(calc(-50vw - 50%)) scale(1)}
-  82%{opacity:1}
-  100%{transform:translateX(calc(-100vw - 160%)) scale(.62);opacity:0}
+  0%{transform:translateY(-120%) scale(.45);opacity:0}
+  16%{opacity:1}
+  55%{transform:translateY(60%) scale(1.05)}
+  84%{opacity:1}
+  100%{transform:translateY(225%) scale(1.2);opacity:0}
 }
 #stageMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
 #stageMsg .big{font-size:clamp(30px,5vw,46px);font-weight:700;letter-spacing:-.02em}
@@ -165,7 +165,7 @@ const sigSVG=id=>`<svg viewBox="0 0 100 100">${SIGNS[id].svg}</svg>`;
 
 /* ---------- game ---------- */
 const $=id=>document.getElementById(id);
-const NROUNDS=8,MINSPAN=3,MAXSPAN=9;
+const NROUNDS=8,MINSPAN=3,MAXSPAN=5;
 let ri=0,span=3,maxSpan=0,perfects=0,seq=[],picked=[],busy=true;
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function startGame(){
@@ -266,7 +266,7 @@ function grade(){
 function finish(){
   $('rSpan').textContent=maxSpan>0?maxSpan:'—';
   $('rPerf').textContent=perfects+' / '+NROUNDS;
-  $('resTitle').textContent=maxSpan>=7?'MEMORY MASTER! 🧠':maxSpan>=5?'STRONG ROAD MEMORY':maxSpan>=4?'PERFECTLY ACCEPTABLE':'WARM UP THAT BRAIN AGAIN';
+  $('resTitle').textContent=maxSpan>=5?'MEMORY MASTER! 🧠':maxSpan>=4?'STRONG ROAD MEMORY':maxSpan>=3?'PERFECTLY ACCEPTABLE':'WARM UP THAT BRAIN AGAIN';
   const badge=$('bestBadge');badge.innerHTML='';
   if(maxSpan>0){
     const old=localStorage.getItem('br.memory.best');
