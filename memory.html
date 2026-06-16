@@ -54,11 +54,16 @@ background:linear-gradient(180deg,#080D1A 0%,#0E1830 60%,#131F3B 78%,#0D1526 80%
 .slot.good{border-color:var(--gron);box-shadow:0 0 18px rgba(43,232,164,.3)}
 .slot.bad{border-color:var(--rod);box-shadow:0 0 18px rgba(232,52,74,.3)}
 #choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:10px}
-.choice{cursor:pointer;border:1px solid var(--line);border-radius:14px;background:rgba(14,24,48,.55);padding:10px;transition:transform .13s,border-color .13s;opacity:0;transform:translateY(14px)}
+.choice{position:relative;cursor:pointer;border:1px solid var(--line);border-radius:14px;background:rgba(14,24,48,.55);padding:10px;transition:transform .13s,border-color .13s;opacity:0;transform:translateY(14px)}
 .choice.in{opacity:1;transform:none}
 .choice svg{width:100%;display:block}
 .choice:hover:not(:disabled){transform:translateY(-3px);border-color:rgba(157,123,255,.55)}
 .choice:disabled{opacity:.3;cursor:default}
+.hintToggle{cursor:pointer;background:none;border:1px solid var(--line);color:var(--dim);border-radius:99px;padding:5px 12px;font:600 12px 'Spline Sans Mono',monospace;letter-spacing:.04em;white-space:nowrap}
+.hintToggle:hover{color:var(--ink)}
+.hintToggle.on{border-color:rgba(255,205,0,.55);color:var(--gul);background:rgba(255,205,0,.08)}
+.passSign .hintLetter{position:absolute;left:0;right:0;top:100%;margin-top:4px;text-align:center;font-family:'Spline Sans Mono',monospace;font-weight:700;font-size:26px;color:var(--gul);text-shadow:0 2px 12px rgba(0,0,0,.85)}
+.choiceLetter{position:absolute;top:3px;right:5px;font-family:'Spline Sans Mono',monospace;font-weight:700;font-size:12px;color:#14171D;background:var(--gul);border-radius:6px;padding:1px 5px;line-height:1.4}
 #undoRow{text-align:center;margin-top:14px;min-height:30px}
 #undoBtn{cursor:pointer;background:none;border:1px solid var(--line);color:var(--dim);border-radius:99px;padding:6px 18px;font:400 13px 'Familjen Grotesk',sans-serif}
 #undoBtn:hover{color:var(--ink)}
@@ -88,7 +93,10 @@ box-shadow:0 0 0 3px rgba(255,255,255,.1),0 12px 36px rgba(255,205,0,.25);transi
   <div class="top">
     <a href="index.html">← BrainRoad</a>
     <div class="hudr" id="roundLbl">ROUND — </div>
-    <div class="hudr">SPAN <b id="spanLbl">3</b></div>
+    <div style="display:flex;gap:12px;align-items:center">
+      <button id="hintBtn" class="hintToggle">💡 Hints off</button>
+      <div class="hudr">SPAN <b id="spanLbl">3</b></div>
+    </div>
   </div>
   <div id="phase">—</div>
   <div id="prompt">—</div>
@@ -104,6 +112,9 @@ box-shadow:0 0 0 3px rgba(255,255,255,.1),0 12px 36px rgba(255,205,0,.25);transi
     <h1>ROAD MEMORY</h1>
     <p>Signs pass by at driving speed — then they're gone. Which ones did you see, <b>in what order</b>? Ace the round and the sequence grows by one sign. Miss it and it shrinks. How far does your memory span reach?</p>
     <p style="margin-top:12px;font-size:13px;color:var(--faint)">It's the same memory that keeps track of the sign you just passed — when it really counts.</p>
+    <p style="margin-top:10px;font-size:12.5px;color:var(--faint)">Struggling with the pictures? Turn on <b style="color:var(--gul)">letter hints</b> — a 1-letter code shows under each sign. Remember the <em>letters</em> like a number, then switch hints off as you improve.</p>
+    <button class="hintToggle" id="hintBtnStart" style="margin-top:12px">💡 Hints off</button>
+    <div style="height:8px"></div>
     <button class="btn" id="startBtn">START THE JOURNEY</button>
   </div>
 </div>
@@ -163,6 +174,15 @@ const SIGNS={
 const IDS=Object.keys(SIGNS);
 const sigSVG=id=>`<svg viewBox="0 0 100 100">${SIGNS[id].svg}</svg>`;
 
+/* ---------- 1-letter memory code (training-wheel hints) ---------- */
+const LET={alg:'M',barn:'K',halka:'I',gangare_v:'W',cykel:'B',vagarbete:'D',
+ annan_fara:'!',vajning:'V',stopp:'O',huvudled:'H',fart30:'3',fart50:'5',
+ fart70:'7',fart90:'9',infart:'N',omkorning:'T',p_forbud:'P',stanna_forbud:'X',
+ hoger:'R',cirkulation:'C',motorvag:'A',overgang_b:'Z'};
+let hintsOn=localStorage.getItem('br.memory.hints')==='1';
+const fallBadge=id=>hintsOn?`<div class="hintLetter">${LET[id]}</div>`:'';
+const choiceBadge=id=>hintsOn?`<span class="choiceLetter">${LET[id]}</span>`:'';
+
 /* ---------- game ---------- */
 const $=id=>document.getElementById(id);
 const NROUNDS=8,MINSPAN=3,MAXSPAN=5;
@@ -194,7 +214,7 @@ function showSequence(){
       const d=document.createElement('div');
       d.className='passSign';
       d.style.setProperty('--pd',SHOW+'ms');
-      d.innerHTML=`${sigSVG(id)}<div class="pole"></div>`;
+      d.innerHTML=`${sigSVG(id)}${fallBadge(id)}<div class="pole"></div>`;
       d.classList.add('passing');
       stage.appendChild(d);
       setTimeout(()=>d.remove(),SHOW+120);
@@ -214,7 +234,7 @@ function askPhase(){
   const ch=$('choices');ch.innerHTML='';
   opts.forEach((id,i)=>{
     const b=document.createElement('button');
-    b.className='choice';b.dataset.id=id;b.innerHTML=sigSVG(id);b.title=SIGNS[id].en;
+    b.className='choice';b.dataset.id=id;b.innerHTML=sigSVG(id)+choiceBadge(id);b.title=SIGNS[id].en;
     b.addEventListener('click',()=>pick(b,id));
     ch.appendChild(b);
     setTimeout(()=>b.classList.add('in'),i*45);
@@ -275,6 +295,20 @@ function finish(){
   localStorage.setItem('br.plays',(+localStorage.getItem('br.plays')||0)+1);
   $('resOvl').classList.remove('hidden');
 }
+function refreshHintBtns(){['hintBtn','hintBtnStart'].forEach(id=>{const b=$(id);if(!b)return;
+  b.textContent=hintsOn?'💡 Hints on':'💡 Hints off';b.classList.toggle('on',hintsOn)})}
+function toggleHints(){
+  hintsOn=!hintsOn;localStorage.setItem('br.memory.hints',hintsOn?'1':'0');refreshHintBtns();
+  // live-update choices currently on screen (recall phase)
+  document.querySelectorAll('.choice').forEach(b=>{
+    const s=b.querySelector('.choiceLetter');
+    if(hintsOn&&!s)b.insertAdjacentHTML('beforeend',`<span class="choiceLetter">${LET[b.dataset.id]}</span>`);
+    else if(!hintsOn&&s)s.remove();
+  });
+}
+$('hintBtn').addEventListener('click',toggleHints);
+$('hintBtnStart').addEventListener('click',toggleHints);
+refreshHintBtns();
 $('startBtn').addEventListener('click',startGame);
 $('againBtn').addEventListener('click',startGame);
 </script>
